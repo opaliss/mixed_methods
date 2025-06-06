@@ -4,13 +4,16 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
-from operators.hermite.hermite_operators import A1, A2, A3, B, get_D_inv
+from operators.hermite.hermite_operators import A1, A2, A3, get_D_inv
 from operators.finite_difference import ddx_central
 
 
 class SimulationSetupFOM:
-    def __init__(self, Nx, Nv, epsilon, alpha_e, alpha_i, u_e, u_i, L, dt, T0, T, nu,
-                 m_e=1, m_i=1836, q_e=-1, q_i=1, ions=False, problem_dir=None, construct_B=False):
+    def __init__(self, Nx, Nv,
+                 epsilon, alpha_e, alpha_i,
+                 u_e, u_i, L, dt, T0, T, nu,
+                 m_e=1, m_i=1836, q_e=-1, q_i=1,
+                 ions=False, problem_dir=None):
         # set up configuration parameters
         # spatial resolution
         self.Nx = Nx
@@ -54,17 +57,10 @@ class SimulationSetupFOM:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # matrix of coefficients (advection)
-        A_diag = A2(D=self.D, i=0, j=self.Nv)
-        A_off = A1(i=0, j=self.Nv, D=self.D)
-        A_col = A3(Nx=self.Nx, Nv=self.Nv, i=0, j=self.Nv)
+        A_diag = A2(D=self.D, Nv=self.Nv)
+        A_off = A1(D=self.D, Nv=self.Nv)
+        A_col = A3(Nx=self.Nx, Nv=self.Nv)
 
         self.A_e = self.alpha_e * A_off + self.u_e * A_diag + self.nu * A_col
         if ions:
             self.A_i = self.alpha_i * A_off + self.u_i * A_diag + self.nu * A_col
-
-        if construct_B:
-            self.B_e = self.q_e/self.m_e/self.alpha_e * B(Nx=self.Nx, i=0, j=self.Nv)
-            if ions:
-                self.B_i = self.q_i / self.m_i / self.alpha_i * B(Nx=self.Nx, i=0, j=self.Nv)
-
-

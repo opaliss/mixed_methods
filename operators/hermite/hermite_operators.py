@@ -57,47 +57,43 @@ def nu_func(n, Nv):
     return n * (n - 1) * (n - 2) / (Nv - 1) / (Nv - 2) / (Nv - 3)
 
 
-def A3(Nx, Nv, i, j):
+def A3(Nx, Nv):
     """A3 matrix in advection term with nu
 
-    :param i: int, 0th index (either 0 or M)
-    :param j: int, final index (either M or Nv)
     :param Nv: int, Hermite spectral resolution
     :param Nx: int, finite difference grid resolution
     :return: 2d array (matrix), A3 matrix in weak landau advection term
     """
-    A = np.zeros((j-i, j-i))
-    for index, n in enumerate(range(i, j)):
+    A = np.zeros((Nv, Nv))
+    for index, n in enumerate(range(Nv)):
         # main diagonal
         A[index, index] = nu_func(n=n, Nv=Nv)
     return -scipy.sparse.kron(A, scipy.sparse.identity(n=Nx), format="csr")
 
 
-def A2(D, i, j):
+def A2(D, Nv):
     """A2 matrix in advection term with u
 
-    :param i: int, 0th index (either 0 or M)
-    :param j: int, final index (either M or Nv)
     :param D: 2d array (matrix), finite difference derivative matrix
+    :param Nv: int, Hermite spectral resolution
     :return: 2d array (matrix), A3 matrix in advection term
     """
-    return -scipy.sparse.kron(scipy.sparse.identity(n=j-i), D, format="csr")
+    return -scipy.sparse.kron(scipy.sparse.identity(n=Nv), D, format="csr")
 
 
-def A1(i, j, D):
+def A1(D, Nv):
     """A1 matrix in weak_landau advection term with alpha
 
-    :param i: int, 0th index (either 0 or M)
-    :param j: int, final index (either M or Nv)
     :param D: 2d array (matrix), finite difference derivative matrix
+    :param Nv: int, Hermite spectral resolution
     :return: 2d array (matrix), A1 matrix in advection term
     """
-    A = np.zeros((j-i, j-i))
-    for index, n in enumerate(range(i, j)):
-        if n != i:
+    A = np.zeros((Nv, Nv))
+    for index, n in enumerate(range(Nv)):
+        if n != 0:
             # lower diagonal
             A[index, index - 1] = np.sqrt(n / 2)
-        if n != j - 1:
+        if n != Nv - 1:
             # upper diagonal
             A[index, index + 1] = np.sqrt((n + 1) / 2)
     return -scipy.sparse.kron(A, D, format="csr")
