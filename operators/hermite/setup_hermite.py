@@ -8,7 +8,7 @@ from operators.hermite.hermite_operators import A1, A2, A3, get_D_inv
 from operators.finite_difference import ddx_central
 
 
-class SimulationSetupFOM:
+class SimulationSetupHermite:
     def __init__(self, Nx, Nv,
                  epsilon, alpha_e, alpha_i,
                  u_e, u_i, L, dt, T0, T, nu,

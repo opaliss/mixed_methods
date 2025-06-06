@@ -5,7 +5,6 @@ Version: Dec 18th, 2024
 """
 import numpy as np
 from scipy.optimize import newton_krylov
-import scipy
 
 
 def implicit_nonlinear_equation(y_new, y_old, dt, right_hand_side):
@@ -20,7 +19,7 @@ def implicit_nonlinear_equation(y_new, y_old, dt, right_hand_side):
     return y_new - y_old - dt * right_hand_side(y=0.5 * (y_old + y_new))
 
 
-def implicit_midpoint_solver_FOM(y_0, right_hand_side, param, r_tol=1e-5, a_tol=1e-8, max_iter=100):
+def implicit_midpoint_solver(y_0, right_hand_side, param, r_tol=1e-5, a_tol=1e-8, max_iter=100):
     """Solve the system
 
         dy/dt = rhs(y),    y(0) = y0,
