@@ -39,8 +39,8 @@ if __name__ == "__main__":
                                    L=2 * np.pi,
                                    dt=1e-2,
                                    T0=0,
-                                   T=200,
-                                   nu=10)
+                                   T=50,
+                                   nu=5)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros(setup.Nv * setup.Nx)
@@ -70,12 +70,12 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../data/hermite/weak_landau/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_runtime_" + str(setup.T0) + "_" + str(setup.T),
-            np.array([end_time_cpu, end_time_wall]))
+    np.save("../data/hermite/weak_landau/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
     np.save("../data/hermite/weak_landau/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
             + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../data/hermite/weak_landau/sol_FOM_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+    np.save("../data/hermite/weak_landau/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

@@ -89,8 +89,8 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save runtime
-    np.save("../data/hermite/bump_on_tail/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(
-        setup.Nx) + "_runtime_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+    np.save("../data/hermite/bump_on_tail/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(
+        setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
     np.save("../data/hermite/bump_on_tail/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
