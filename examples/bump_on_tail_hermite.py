@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.hermite.hermite_operators import nonlinear_full, charge_density_two_stream
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.hermite.setup_hermite_two_stream import SimulationSetupTwoStreamHermite
-from operators.poisson_solver import gmres_solver, fft_solver
+from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
 
@@ -23,7 +23,7 @@ def rhs(y):
                                     alpha_i=setup.alpha_i, q_e1=setup.q_e1, q_e2=setup.q_e2, q_i=setup.q_i)
 
     # electric field computed
-    E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv)
+    E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
     # initialize the rhs dydt
     dydt_ = np.zeros(len(y))
