@@ -21,7 +21,7 @@ def rhs(y):
                          C0_e=y[:setup.Nx], C0_i=C0_ions)
 
     # electric field computed (poisson solver)
-    E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, atol=1e-12, rtol=1e-12)
+    E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, atol=1e-12, r_tol=1e-12)
 
     # evolving only electrons
     return setup.A_e @ y + nonlinear_full(E=E, psi=y, Nv=setup.Nv, Nx=setup.Nx, alpha=setup.alpha_e,
