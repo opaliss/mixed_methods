@@ -24,12 +24,20 @@ def xi_legendre(n, v, v_a, v_b):
     if n == 1:
         return np.sqrt(2 * n + 1) * eta
     else:
-        xi = np.zeros((n + 1, len(v)))
-        xi[0, :] = 1
-        xi[1, :] = np.sqrt(3) * eta
-        for jj in range(1, n):
-            xi[jj + 1, :] = ((2 * n + 1) * eta * xi[jj, :] - jj * xi[jj - 1, :]) / (n + 1) * np.sqrt(2 * n + 1)
-    return xi[n, :]
+        if isinstance(eta, float):
+            xi = np.zeros(n + 1)
+            xi[0] = 1
+            xi[1] = np.sqrt(3) * eta
+            for jj in range(1, n):
+                xi[jj + 1] = ((2 * n + 1) * eta * xi[jj] - jj * xi[jj - 1]) / (n + 1) * np.sqrt(2 * n + 1)
+            return xi[n]
+        else:
+            xi = np.zeros((n + 1, len(v)))
+            xi[0, :] = 1
+            xi[1, :] = np.sqrt(3) * eta
+            for jj in range(1, n):
+                xi[jj + 1, :] = ((2 * n + 1) * eta * xi[jj, :] - jj * xi[jj - 1, :]) / (n + 1) * np.sqrt(2 * n + 1)
+            return xi[n, :]
 
 
 def A1(D, Nv, v_a, v_b):
@@ -66,7 +74,7 @@ def sigma_v1(n, v_a, v_b):
         return 0
 
 
-def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx):
+def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
     """compute acceleration term (nonlinear)
 
     :param E: 1d array, electric field on finite difference mesh
@@ -80,10 +88,42 @@ def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx):
     :return: N(E, psi)
     """
     res = np.zeros(len(psi))
-    for n in range(Nv):
-        if n != 0:
-            res[n * Nx: (n + 1) * Nx] = q / m * np.sqrt(2 * n) * E * psi[(n - 1) * Nx: n * Nx]
+    for nn in range(Nv):
+        if nn != 0:
+            for ii in range(nn):
+                res[nn * Nx: (nn + 1) * Nx] += psi[(ii - 1) * Nx: ii * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
+        res[nn * Nx: (nn + 1) * Nx] += boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv, psi=psi)
+        res[nn * Nx: (nn + 1) * Nx] *= - q / m * E
     return res
+
+
+def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
+    """
+    
+    :param n: 
+    :return: 
+    """
+    if n < 3:
+        return 0
+    else:
+        return gamma / (v_b - v_a) * (
+                    xi_legendre(n=n, v=v_b, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_b, Nv=Nv, Nx=Nx, v_a=v_a,
+                                                                            v_b=v_b)
+                    - xi_legendre(n=n, v=v_a, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_a, Nv=Nv, Nx=Nx, v_a=v_a,
+                                                                              v_b=v_b))
+
+
+def construct_f(state, v, Nv, Nx, v_a, v_b):
+    """
+
+    :param state:
+    :param v:
+    :return:
+    """
+    result = np.zeros(Nx)
+    for n in range(Nv):
+        result += state[n * Nx: (n + 1) * Nx] * xi_legendre(n=n, v=v, v_a=v_a, v_b=v_b)
+    return result
 
 
 def sigma_v2(n, i, v_a, v_b):
