@@ -41,8 +41,8 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupTwoStreamHermite(Nx=301,
-                                            Nv=200,
+    setup = SimulationSetupTwoStreamHermite(Nx=201,
+                                            Nv=300,
                                             epsilon=1e-3,
                                             alpha_e1=np.sqrt(2),
                                             alpha_e2=1/np.sqrt(2),
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                                             L=20 * np.pi / 3,
                                             dt=1e-2,
                                             T0=0,
-                                            T=80,
+                                            T=35,
                                             nu_e1=20,
                                             nu_e2=20,
                                             n0_e1=0.9,
@@ -95,6 +95,6 @@ if __name__ == "__main__":
     # save results
     np.save("../data/hermite/bump_on_tail/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
-    np.save("../data/hermite/bump_on_tail/sol_t_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+    np.save("../data/hermite/bump_on_tail/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
