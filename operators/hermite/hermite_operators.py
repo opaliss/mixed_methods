@@ -4,9 +4,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
-import scipy.special
-from operators.universal_functions import nu_func
-
+import scipy
 
 
 def psi_ln_aw(n, alpha_s, u_s, v):
@@ -35,46 +33,21 @@ def psi_ln_aw(n, alpha_s, u_s, v):
     return psi[n, :]
 
 
-
-def A3(Nx, Nv):
-    """A3 matrix in advection term with nu
-
-    :param Nv: int, Hermite spectral resolution
-    :param Nx: int, finite difference grid resolution
-    :return: 2d array (matrix), A3 matrix in weak landau advection term
-    """
-    A = np.zeros((Nv, Nv))
-    for index, n in enumerate(range(Nv)):
-        # main diagonal
-        A[index, index] = nu_func(n=n, Nv=Nv)
-    return -scipy.sparse.kron(A, scipy.sparse.identity(n=Nx), format="csr")
-
-
-def A2(D, Nv):
-    """A2 matrix in advection term with u
-
-    :param D: 2d array (matrix), finite difference derivative matrix
-    :param Nv: int, Hermite spectral resolution
-    :return: 2d array (matrix), A3 matrix in advection term
-    """
-    return -scipy.sparse.kron(scipy.sparse.identity(n=Nv), D, format="csr")
-
-
 def A1(D, Nv):
-    """A1 matrix in weak_landau advection term with alpha
+    """A1 matrix advection term with alpha
 
     :param D: 2d array (matrix), finite difference derivative matrix
     :param Nv: int, Hermite spectral resolution
     :return: 2d array (matrix), A1 matrix in advection term
     """
     A = np.zeros((Nv, Nv))
-    for index, n in enumerate(range(Nv)):
+    for n in range(Nv):
         if n != 0:
             # lower diagonal
-            A[index, index - 1] = np.sqrt(n / 2)
+            A[n, n - 1] = np.sqrt(n / 2)
         if n != Nv - 1:
             # upper diagonal
-            A[index, index + 1] = np.sqrt((n + 1) / 2)
+            A[n, n + 1] = np.sqrt((n + 1) / 2)
     return -scipy.sparse.kron(A, D, format="csr")
 
 

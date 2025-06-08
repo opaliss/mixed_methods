@@ -4,8 +4,8 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
+import scipy
 from operators.universal_functions import nu_func
-
 
 
 def xi_legendre(n, v, v_a, v_b):
@@ -33,3 +33,78 @@ def xi_legendre(n, v, v_a, v_b):
     return xi[n, :]
 
 
+def A1(D, Nv):
+    """A1 matrix advection term with sigma
+
+    :param D: 2d array (matrix), finite difference derivative matrix
+    :param Nv: int, Hermite spectral resolution
+    :return: 2d array (matrix), A1 matrix in advection term
+    """
+    A = np.zeros((Nv, Nv))
+    for n in range(Nv):
+        if n != 0:
+            # lower diagonal
+            A[n, n - 1] = sigma_v1(n)
+        if n != Nv - 1:
+            # upper diagonal
+            A[n, n + 1] = sigma_v1(n+1)
+    return -scipy.sparse.kron(A, D, format="csr")
+
+
+def sigma_v1(n):
+    """sigma(n)
+
+    :param n: int, index of sigma
+    :return: sigma(n)
+    """
+    if n >= 1:
+        return n / np.sqrt((2*n+1)*(2*n-1))
+    else:
+        return 0
+
+
+def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx):
+    """compute acceleration term (nonlinear)
+
+    :param E: 1d array, electric field on finite difference mesh
+    :param psi: 1d array, vector of all coefficients
+    :param q: float, charge of particles
+    :param m: float, mass of particles
+    :param v_a: float, lower velocity boundary
+    :param v_b: float, upper velocity boundary
+    :param Nx: int, grid size in space
+    :param Nv: int, spectral resolution in velocity
+    :return: N(E, psi)
+    """
+    res = np.zeros(len(psi))
+    for n in range(Nv):
+        if n != 0:
+            res[n*Nx: (n+1)*Nx] = q/m  * np.sqrt(2*n) * E * psi[(n-1)*Nx: n*Nx]
+    return res
+
+
+def sigma_v2(n, i, v_a, v_b):
+    """sigma(n, i)
+
+    :param n: int, index of coefficients
+    :param i: int, index of sum in nonlinear term
+    :param v_a: float, lower velocity boundary
+    :param v_b: float, upper velocity boundary
+    :return: sigma(n, i)
+    """
+    return 2 * np.sqrt((2*n+1) * (2*i + 1)) / (v_b - v_a) * pi(n, i)
+
+
+def pi(n, i):
+    """pi(n, i)
+
+    :param n: int, index of coefficients
+    :param i: int, index of sum in nonlinear term
+    :return: pi(n, i)
+    """
+    # even number
+    if n-i % 2 == 0:
+        return 0
+    # odd number
+    else:
+        return 1

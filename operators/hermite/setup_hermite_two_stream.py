@@ -4,8 +4,8 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
-from operators.hermite.hermite_operators import A1, A2, A3
-from operators.universal_functions import get_D_inv
+from operators.hermite.hermite_operators import A1
+from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
 
