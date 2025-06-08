@@ -18,7 +18,7 @@ import numpy as np
 def rhs(y):
     # charge density computed for poisson's equation
     rho = charge_density_two_stream(C0_e1=y[:setup.Nx],
-                                    C0_e2=y[setup.Nx * setup.Nv: setup.Nx * (setup.Nv + 1)],
+                                    C0_e2=y[setup.Nx * setup.Nv_e1: setup.Nx * (setup.Nv_e1 + 1)],
                                     C0_i=C0_ions, alpha_e1=setup.alpha_e1, alpha_e2=setup.alpha_e2,
                                     alpha_i=setup.alpha_i, q_e1=setup.q_e1, q_e2=setup.q_e2, q_i=setup.q_i)
 
@@ -29,23 +29,24 @@ def rhs(y):
     dydt_ = np.zeros(len(y))
     # evolving electrons
     # electron species (1) => bulk
-    dydt_[:setup.Nv * setup.Nx] = setup.A_e1 @ y[:setup.Nv * setup.Nx] \
-                                  + nonlinear_full(E=E, psi=y[:setup.Nv * setup.Nx], Nv=setup.Nv, Nx=setup.Nx,
-                                                q=setup.q_e1, m=setup.m_e1, alpha=setup.alpha_e1)
+    dydt_[:setup.Nv_e1 * setup.Nx] = setup.A_e1 @ y[:setup.Nv_e1 * setup.Nx] \
+                                  + nonlinear_full(E=E, psi=y[:setup.Nv_e1 * setup.Nx], Nv=setup.Nv_e1, Nx=setup.Nx,
+                                                   q=setup.q_e1, m=setup.m_e1, alpha=setup.alpha_e1)
 
     # electron species (2) => bump
-    dydt_[setup.Nv * setup.Nx:] = setup.A_e2 @ y[setup.Nv * setup.Nx:] \
-                                  + nonlinear_full(E=E, psi=y[setup.Nv * setup.Nx:], Nv=setup.Nv, Nx=setup.Nx,
+    dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e2 @ y[setup.Nv_e1 * setup.Nx:] \
+                                  + nonlinear_full(E=E, psi=y[setup.Nv_e1 * setup.Nx:], Nv=setup.Nv_e2, Nx=setup.Nx,
                                                    q=setup.q_e2, m=setup.m_e2, alpha=setup.alpha_e2)
     return dydt_
 
 
 if __name__ == "__main__":
     setup = SimulationSetupTwoStreamHermite(Nx=201,
-                                            Nv=300,
+                                            Nv_e1=300,
+                                            Nv_e2=350,
                                             epsilon=1e-3,
                                             alpha_e1=np.sqrt(2),
-                                            alpha_e2=1/np.sqrt(2),
+                                            alpha_e2=1 / np.sqrt(2),
                                             alpha_i=np.sqrt(2 / 1836),
                                             u_e1=0,
                                             u_e2=4.5,
@@ -61,12 +62,12 @@ if __name__ == "__main__":
                                             FD_order=2)
 
     # initial condition: read in result from previous simulation
-    y0 = np.zeros(2 * setup.Nv * setup.Nx)
+    y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     y0[:setup.Nx] = setup.n0_e1 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
     # second electron species (unperturbed)
-    y0[setup.Nv * setup.Nx: setup.Nv * setup.Nx + setup.Nx] = setup.n0_e2 * np.ones(setup.Nx) / setup.alpha_e2
+    y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * np.ones(setup.Nx) / setup.alpha_e2
     # ions (unperturbed + static)
     C0_ions = np.ones(setup.Nx) / setup.alpha_i
 
@@ -97,4 +98,3 @@ if __name__ == "__main__":
             + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
     np.save("../data/hermite/bump_on_tail/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
-

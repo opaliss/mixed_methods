@@ -9,17 +9,19 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupTwoStreamHermite:
-    def __init__(self, Nx,  Nv, epsilon, alpha_e1, alpha_e2, alpha_i,
+    def __init__(self, Nx,  Nv_e1, Nv_e2, epsilon, alpha_e1, alpha_e2, alpha_i,
                  u_e1, u_e2, u_i, L, dt, T0, T,
                  nu_e1, nu_e2,  n0_e1, n0_e2, FD_order,
-                 periodic=True, nu_i=0, m_e1=1, m_e2=1, m_i=1836, q_e1=-1, q_e2=-1, q_i=1, ions=False):
+                 periodic=True, nu_i=0, m_e1=1, m_e2=1, m_i=1836, q_e1=-1, q_e2=-1, q_i=1, ions=False, Nv_i=0):
         # set up configuration parameters
         # resolution in space
         self.Nx = Nx
         # resolution in velocity
-        self.Nv = Nv
+        self.Nv_e1 = Nv_e1
+        self.Nv_e2 = Nv_e2
+        self.Nv_i = Nv_i
         # total DOF for each species
-        self.N = self.Nv * self.Nx
+        # self.N = self.Nv * self.Nx
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
         # velocity scaling of electron and ion
@@ -64,15 +66,16 @@ class SimulationSetupTwoStreamHermite:
         self.D = ddx_central(Nx=self.Nx+1, dx=self.dx, periodic=periodic, order=FD_order)
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
-        # matrix of coefficients (advection)
-        A_diag = A2(D=self.D, Nv=self.Nv)
-        A_off = A1(D=self.D, Nv=self.Nv)
-        A_col = A3(Nx=self.Nx, Nv=self.Nv)
-
         # A matrices
-        self.A_e1 = self.u_e1 * A_diag + self.alpha_e1 * A_off + self.nu_e1 * A_col
-        self.A_e2 = self.u_e2 * A_diag + self.alpha_e2 * A_off + self.nu_e2 * A_col
+        self.A_e1 = self.u_e1 * A2(D=self.D, Nv=self.Nv_e1) \
+                    + self.alpha_e1 * A1(D=self.D, Nv=self.Nv_e1) \
+                    + self.nu_e1 * A3(Nx=self.Nx, Nv=self.Nv_e1)
+        self.A_e2 = self.u_e2 * A2(D=self.D, Nv=self.Nv_e2) \
+                    + self.alpha_e2 * A1(D=self.D, Nv=self.Nv_e2) \
+                    + self.nu_e2 * A3(Nx=self.Nx, Nv=self.Nv_e2)
 
         # if ions evolve
         if ions:
-            self.A_i = self.u_i * A_diag + self.alpha_i * A_off + self.nu_i * A_col
+            self.A_i = self.u_i * A2(D=self.D, Nv=self.Nv_i) \
+                       + self.alpha_i * A1(D=self.D, Nv=self.Nv_i) \
+                       + self.nu_i * A3(Nx=self.Nx, Nv=self.Nv_i)
