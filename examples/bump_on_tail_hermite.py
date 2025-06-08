@@ -1,7 +1,7 @@
 """Module to run the bump-on-tail instability full-order model (FOM) testcase
 
 Author: Opal Issan
-Date: June 6th, 2025
+Date: June 8th, 2025
 """
 import sys, os
 
@@ -19,7 +19,7 @@ def rhs(y):
     # charge density computed for poisson's equation
     rho = charge_density_two_stream(C0_e1=y[:setup.Nx],
                                     C0_e2=y[setup.Nx * setup.Nv_e1: setup.Nx * (setup.Nv_e1 + 1)],
-                                    C0_i=C0_ions, alpha_e1=setup.alpha_e1, alpha_e2=setup.alpha_e2,
+                                    C0_i=np.ones(setup.Nx) / setup.alpha_i, alpha_e1=setup.alpha_e1, alpha_e2=setup.alpha_e2,
                                     alpha_i=setup.alpha_i, q_e1=setup.q_e1, q_e2=setup.q_e2, q_i=setup.q_i)
 
     # electric field computed
@@ -62,14 +62,13 @@ if __name__ == "__main__":
                                             FD_order=2)
 
     # initial condition: read in result from previous simulation
+    # ions (unperturbed + static)
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     y0[:setup.Nx] = setup.n0_e1 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
     # second electron species (unperturbed)
     y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * np.ones(setup.Nx) / setup.alpha_e2
-    # ions (unperturbed + static)
-    C0_ions = np.ones(setup.Nx) / setup.alpha_i
 
     # start timer
     start_time_cpu = time.process_time()
@@ -78,8 +77,8 @@ if __name__ == "__main__":
     # integrate (implicit midpoint)
     sol_midpoint_u, setup = implicit_midpoint_solver(y_0=y0,
                                                      right_hand_side=rhs,
-                                                     r_tol=1e-6,
-                                                     a_tol=1e-8,
+                                                     r_tol=1e-10,
+                                                     a_tol=1e-10,
                                                      max_iter=100,
                                                      param=setup)
 
@@ -90,11 +89,15 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save runtime
-    np.save("../data/hermite/bump_on_tail/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(
-        setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+    np.save("../data/hermite/bump_on_tail/sol_runtime_Nve1_" + str(setup.Nv_e1)
+            + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
+            + "_" + str(setup.T) + ".npy", np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../data/hermite/bump_on_tail/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
-    np.save("../data/hermite/bump_on_tail/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+    np.save("../data/hermite/bump_on_tail/sol_u_Nve1_" + str(setup.Nv_e1)
+            + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", sol_midpoint_u)
+
+    np.save("../data/hermite/bump_on_tail/sol_t_Nve1_" + str(setup.Nv_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)

@@ -18,7 +18,7 @@ import numpy as np
 def rhs(y):
     # charge density computed
     rho = charge_density(alpha_e=setup.alpha_e, alpha_i=setup.alpha_i, q_e=setup.q_e, q_i=setup.q_i,
-                         C0_e=y[:setup.Nx], C0_i=C0_ions)
+                         C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx) / setup.alpha_i)
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -48,8 +48,6 @@ if __name__ == "__main__":
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha_e
 
-    # ions (unperturbed)
-    C0_ions = np.ones(setup.Nx) / setup.alpha_i
 
     # start timer
     start_time_cpu = time.process_time()
