@@ -34,7 +34,7 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupLegendre(Nx=21,
-                                    Nv_e=30,
+                                    Nv_e=50,
                                     epsilon=1e-2,
                                     v_a=-5,
                                     v_b=5,
@@ -50,10 +50,10 @@ if __name__ == "__main__":
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
-    x_component = (1 + setup.epsilon * np.cos(x_)) / (2 * np.sqrt(np.pi)) / (setup.v_b - setup.v_a)
+    x_component = (1 + setup.epsilon * np.cos(x_)) / np.sqrt(2 * np.pi) / (setup.v_b - setup.v_a)
     for nn in range(setup.Nv_e):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        v_component = scipy.integrate.trapezoid(xi * np.exp(-(v_ ** 2)), x=v_, dx=np.abs(v_[1] - v_[0]))
+        v_component = scipy.integrate.trapezoid(xi * np.exp(-0.5 * (v_ ** 2)), x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
 
     # start timer

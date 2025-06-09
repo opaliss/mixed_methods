@@ -32,7 +32,7 @@ if __name__ == "__main__":
     setup = SimulationSetupHermite(Nx=51,
                                    Nv=50,
                                    epsilon=1e-2,
-                                   alpha_e=0.75,
+                                   alpha_e=np.sqrt(2),
                                    alpha_i=np.sqrt(2 / 1836),
                                    u_e=0,
                                    u_i=0,
@@ -40,7 +40,7 @@ if __name__ == "__main__":
                                    dt=1e-2,
                                    T0=0,
                                    T=10,
-                                   nu=5)
+                                   nu=0)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros(setup.Nv * setup.Nx)

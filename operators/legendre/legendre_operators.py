@@ -97,10 +97,10 @@ def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
         if nn != 0:
             for ii in range(nn):
                 sig = sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
-                res[nn * Nx: (nn + 1) * Nx] += psi[ii * Nx: (ii+1) * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
+                res[nn * Nx: (nn + 1) * Nx] += psi[ii * Nx: (ii + 1) * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
         if gamma != 0:
             res[nn * Nx: (nn + 1) * Nx] += boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv, psi=psi)
-        #res[nn * Nx: (nn + 1) * Nx] *= q / m * E
+        # res[nn * Nx: (nn + 1) * Nx] *= q / m * E
     return (res.reshape(Nv, Nx) * q / m * E).flatten()
 
 
@@ -120,11 +120,11 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
         return 0
     else:
         return gamma / (v_b - v_a) * (
-                    xi_legendre(n=n, v=v_b, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_b, Nv=Nv,
-                                                                            Nx=Nx, v_a=v_a,
-                                                                            v_b=v_b)
-                    - xi_legendre(n=n, v=v_a, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_a, Nv=Nv, Nx=Nx, v_a=v_a,
-                                                                              v_b=v_b))
+                xi_legendre(n=n, v=v_b, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_b, Nv=Nv,
+                                                                        Nx=Nx, v_a=v_a,
+                                                                        v_b=v_b)
+                - xi_legendre(n=n, v=v_a, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_a, Nv=Nv, Nx=Nx, v_a=v_a,
+                                                                          v_b=v_b))
 
 
 def construct_f(state, v, Nv, Nx, v_a, v_b):
@@ -161,6 +161,16 @@ def sigma_v2(n, i, v_a, v_b):
         return 0
 
 
+def sigma_bar(v_a, v_b):
+    """mean of v_a and v_b
+
+    :param v_a: float, lower velocity boundary
+    :param v_b: float, upper velocity boundary
+    :return: 0.5 * (v_a + v_b)
+    """
+    return 0.5 * (v_a + v_b)
+
+
 def charge_density(q_e, q_i, C0_e, C0_i, v_a, v_b):
     """charge density (right hand side of Poisson equation)
 
@@ -173,3 +183,90 @@ def charge_density(q_e, q_i, C0_e, C0_i, v_a, v_b):
     :return: change density rho(x, t=t*)
     """
     return (v_b - v_a) * (q_e * C0_e + q_i * C0_i)
+
+
+def mass_legendre(state):
+    """mass of a single specie
+
+    :param state: 1d array, electron or ion state
+    :return: mass for the state
+    """
+    return np.sum(state[0, :])
+
+
+def momentum_legendre(state, v_a, v_b):
+    """momentum of a single specie
+
+    :param state: 1d array, electron or ion state
+    :param v_a: float, the velocity lower boundary
+    :param v_b: float, the velocity upper boundary
+    :return: momentum for the state
+    """
+    return sigma_v1(n=1, v_a=v_a, v_b=v_b) * np.sum(state[1, :]) + 0.5 * (v_b + v_a) * np.sum(state[0, :])
+
+
+def energy_k_legendre(state, v_a, v_b):
+    """kinetic energy of a single specie
+
+    :param state: 1d array, electron or ion state
+    :param v_a: float, the velocity lower boundary
+    :param v_b: float, the velocity upper boundary
+    :return: kinetic energy for the state
+    """
+    return sigma_v1(n=1, v_a=v_a, v_b=v_b) * sigma_v1(n=2, v_a=v_a, v_b=v_b) * np.sum(state[2, :]) \
+           + 2 * sigma_bar(v_a=v_a, v_b=v_b) * sigma_v1(n=1, v_a=v_a, v_b=v_b) * np.sum(state[1, :]) \
+           + (sigma_v1(n=1, v_a=v_a, v_b=v_b)**2
+              + sigma_v1(n=0, v_a=v_a, v_b=v_b)**2 + sigma_bar(v_a=v_a, v_b=v_b)**2) * np.sum(state[0, :])
+
+
+def total_mass_legendre(state, v_a, v_b, dx):
+    """total mass of single electron and ion setup
+
+    :param state: 1d array, species s state
+    :param v_a: float, the velocity lower boundary
+    :param v_b: float, the velocity upper boundary
+    :param dx: float, spatial spacing
+    :return: total mass of single electron and ion setup
+    """
+    return mass_legendre(state=state) * dx * (v_b - v_a)
+
+
+def total_momentum_legendre(state, v_a, v_b, dx, m_s):
+    """total momentum of single electron and ion setup
+
+    :param state: 1d array, species s state
+    :param dx: float, spatial spacing
+    :param m_s: float, mass of species s
+    :param v_a: float, the velocity lower boundary
+    :param v_b: float, the velocity upper boundary
+    :return: total momentum of single electron and ion setup
+    """
+    return momentum_legendre(state=state, v_a=v_a, v_b=v_b) * dx * (v_b - v_a) * m_s
+
+
+def total_energy_k_legendre(state, dx, v_a, v_b, m_s):
+    """total kinetic energy of single electron and ion setup
+
+    :param state: 1d array, species s state
+    :param dx: float, spatial spacing
+    :param v_a: float, the velocity lower boundary
+    :param v_b: float, the velocity upper boundary
+    :return: total kinetic energy of single electron and ion setup
+    """
+    return 0.5 * energy_k_legendre(state=state, v_a=v_a, v_b=v_b) * dx * (v_b - v_a) * m_s
+
+
+def charge_density_two_stream_legendre(q_e1, q_e2, q_i, v_a, v_b, C0_e1, C0_e2, C0_i):
+    """charge density (right hand side of Poisson equation)
+
+    :param q_e1: float, charge of electrons species 1
+    :param q_e2: float, charge of electrons species 2
+    :param q_i: float, charge of ions
+    :param C0_e1: 1d array, density of electrons species 1
+    :param C0_e2: 1d array, density of electrons species 2
+    :param C0_i: 1d array, density of ions
+    :param v_a: float, the velocity lower boundary
+    :param v_b: float, the velocity upper boundary
+    :return: change density rho(x, t=t*)
+    """
+    return (v_b - v_a) * (q_e1 * C0_e1 + q_e2 * C0_e2 + q_i * C0_i)
