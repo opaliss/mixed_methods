@@ -1,7 +1,7 @@
 """Module to run the bump-on-tail instability Hermite testcase
 
 Author: Opal Issan
-Date: June 8th, 2025
+Date: June 9th, 2025
 """
 import sys, os
 

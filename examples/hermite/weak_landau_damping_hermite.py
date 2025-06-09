@@ -1,7 +1,7 @@
-"""Module to run Hermite weak_landau Landau damping testcase
+"""Module to run Hermite weak Landau damping testcase
 
 Author: Opal Issan
-Date: June 6, 2025
+Date: June 9th, 2025
 """
 import sys, os
 
