@@ -4,7 +4,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 8th, 2025
 """
 import numpy as np
-from operators.legendre.legendre_operators import A1
+from operators.legendre.legendre_operators import A1, sigma_bar
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -60,15 +60,15 @@ class SimulationSetupTwoStreamLegendre:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # A matrices
-        self.A_e1 = 0.5 * (self.v_a + self.v_b) * A2(D=self.D, Nv=self.Nv_e1) \
+        self.A_e1 = sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_e1) \
                     + A1(D=self.D, Nv=self.Nv_e1, v_a=self.v_a, v_b=self.v_b) \
                     + self.nu_e1 * A3(Nx=self.Nx, Nv=self.Nv_e1)
-        self.A_e2 = 0.5 * (self.v_a + self.v_b) * A2(D=self.D, Nv=self.Nv_e2) \
+        self.A_e2 = sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_e2) \
                     + A1(D=self.D, Nv=self.Nv_e2, v_a=self.v_a, v_b=self.v_b) \
                     + self.nu_e2 * A3(Nx=self.Nx, Nv=self.Nv_e2)
 
         # if ions evolve
         if ions:
-            self.A_i = 0.5 * (self.v_a + self.v_b) * A2(D=self.D, Nv=self.Nv_i) \
+            self.A_i = sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_i) \
                        + A1(D=self.D, Nv=self.Nv_i, v_a=v_a, v_b=v_b) \
                        + self.nu_i * A3(Nx=self.Nx, Nv=self.Nv_i)

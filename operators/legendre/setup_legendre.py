@@ -5,7 +5,7 @@ Last Update: June 6th, 2025
 """
 
 import numpy as np
-from operators.legendre.legendre_operators import A1
+from operators.legendre.legendre_operators import A1, sigma_bar
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -54,9 +54,9 @@ class SimulationSetupLegendre:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         self.A_e = A1(D=self.D, Nv=self.Nv_e, v_a=v_a, v_b=v_b) \
-                   + 0.5 * (self.v_a + self.v_b) * A2(D=self.D, Nv=self.Nv_e) \
+                   + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_e) \
                    + self.nu * A3(Nx=self.Nx, Nv=self.Nv_e)
         if ions:
             self.A_i = A1(D=self.D, Nv=self.Nv_i, v_a=v_a, v_b=v_b) \
-                   + 0.5 * (self.v_a + self.v_b) * A2(D=self.D, Nv=self.Nv_i) \
+                   + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_i) \
                    + self.nu * A3(Nx=self.Nx, Nv=self.Nv_i)
