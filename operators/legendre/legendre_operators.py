@@ -106,7 +106,13 @@ def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
 def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
     """
     
-    :param n: 
+    :param psi:
+    :param Nv:
+    :param Nx:
+    :param v_a:
+    :param v_b:
+    :param gamma:
+    :param n:
     :return: 
     """
     if n < 3:
@@ -123,6 +129,10 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
 def construct_f(state, v, Nv, Nx, v_a, v_b):
     """
 
+    :param v_b:
+    :param v_a:
+    :param Nx:
+    :param Nv:
     :param state:
     :param v:
     :return:
