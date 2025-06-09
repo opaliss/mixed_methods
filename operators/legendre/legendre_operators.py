@@ -57,10 +57,10 @@ def A1(D, Nv, v_a, v_b):
     for n in range(Nv):
         if n != 0:
             # lower diagonal
-            A[n, n - 1] = sigma_v1(n, v_a, v_b)
+            A[n, n - 1] = sigma_v1(n=n, v_a=v_a, v_b=v_b)
         if n != Nv - 1:
             # upper diagonal
-            A[n, n + 1] = sigma_v1(n + 1, v_a, v_b)
+            A[n, n + 1] = sigma_v1(n=n + 1, v_a=v_a, v_b=v_b)
     return -scipy.sparse.kron(A, D, format="csr")
 
 
@@ -96,11 +96,12 @@ def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
     for nn in range(Nv):
         if nn != 0:
             for ii in range(nn):
+                sig = sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
                 res[nn * Nx: (nn + 1) * Nx] += psi[ii * Nx: (ii+1) * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
         if gamma != 0:
             res[nn * Nx: (nn + 1) * Nx] += boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv, psi=psi)
-        res[nn * Nx: (nn + 1) * Nx] *= - q / m * E
-    return res
+        #res[nn * Nx: (nn + 1) * Nx] *= q / m * E
+    return (res.reshape(Nv, Nx) * q / m * E).flatten()
 
 
 def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
@@ -153,7 +154,7 @@ def sigma_v2(n, i, v_a, v_b):
     :return: sigma(n, i)
     """
     # odd number
-    if n - i % 2 == 1:
+    if (n - i) % 2 == 1:
         return 2 * np.sqrt((2 * n + 1) * (2 * i + 1)) / (v_b - v_a)
     # even number
     else:

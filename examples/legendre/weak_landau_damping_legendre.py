@@ -28,14 +28,14 @@ def rhs(y):
 
     # evolving only electrons
     return setup.A_e @ y + nonlinear_full(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx,
-                                          q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
+                                        q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
                                           v_a=setup.v_a, v_b=setup.v_b)
 
 
 if __name__ == "__main__":
     setup = SimulationSetupLegendre(Nx=21,
-                                    Nv_e=100,
-                                    epsilon=1e-3,
+                                    Nv_e=30,
+                                    epsilon=1e-2,
                                     v_a=-5,
                                     v_b=5,
                                     gamma=0,
@@ -63,8 +63,8 @@ if __name__ == "__main__":
     # integrate (implicit midpoint)
     sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
                                               right_hand_side=rhs,
-                                              a_tol=1e-12,
-                                              r_tol=1e-12,
+                                              a_tol=1e-8,
+                                              r_tol=1e-8,
                                               max_iter=100,
                                               param=setup)
 
