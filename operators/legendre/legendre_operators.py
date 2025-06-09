@@ -78,7 +78,7 @@ def sigma_v1(n, v_a, v_b):
         return 0
 
 
-def nonlinear_full(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
+def nonlinear_full_legendre(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
     """compute acceleration term (nonlinear)
 
     :param E: 1d array, electric field on finite difference mesh

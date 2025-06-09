@@ -1,4 +1,4 @@
-"""Module to run the bump-on-tail instability Hermite testcase
+"""Module to run the bump-on-tail instability Legendre testcase
 
 Author: Opal Issan
 Date: June 8th, 2025
@@ -7,9 +7,9 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.hermite.hermite_operators import nonlinear_full, charge_density_two_stream
+from operators.legendre.legendre_operators import nonlinear_full_legendre, charge_density_two_stream_legendre
 from operators.implicit_midpoint import implicit_midpoint_solver
-from operators.hermite.setup_hermite_two_stream import SimulationSetupTwoStreamHermite
+from operators.legendre.setup_legendre_two_stream import SimulationSetupTwoStreamLegendre
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
