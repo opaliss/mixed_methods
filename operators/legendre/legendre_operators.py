@@ -96,36 +96,33 @@ def sigma_v1(n, v_a, v_b):
         return 0
 
 
-def nonlinear_full_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma):
+def nonlinear_full_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma, v_a, v_b, xi_v_a, xi_v_b):
     """compute acceleration term (nonlinear)
 
     :param E: 1d array, electric field on finite difference mesh
     :param psi: 1d array, vector of all coefficients
     :param q: float, charge of particles
     :param m: float, mass of particles
-    :param v_a: float, lower velocity boundary
-    :param v_b: float, upper velocity boundary
+    :param B_mat: 2d array, matrix with sigma coefficients
     :param Nx: int, grid size in space
     :param Nv: int, spectral resolution in velocity
     :param gamma: float, penalty term
     :return: N(E, psi)
     """
-    # res = np.zeros(len(psi))
-    # # for nn in range(Nv):
-    # #     if nn != 0:
-    # #         for ii in range(nn):
-    # #             sig = sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
-    # #             res[nn * Nx: (nn + 1) * Nx] += psi[ii * Nx: (ii + 1) * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
-    # #     if gamma != 0:
-    # #         res[nn * Nx: (nn + 1) * Nx] += boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv, psi=psi)
-    # #     # res[nn * Nx: (nn + 1) * Nx] *= q / m * E
-    res = B_mat @ psi
-    return (res.reshape(Nv, Nx) * q / m * E).flatten()
+    res_acc = B_mat @ psi
+    res_boundary = np.zeros(len(psi))
+    for nn in range(3, Nv):
+        if gamma != 0:
+            res_boundary[nn * Nx: (nn + 1) * Nx] += -boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv,
+                                                                   psi=psi, xi_v_a=xi_v_a, xi_v_b=xi_v_b)
+    return ((res_acc + res_boundary).reshape(Nv, Nx) * q / m * E).flatten()
 
 
-def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
+def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi, xi_v_a, xi_v_b):
     """
     
+    :param xi_v_a:
+    :param xi_v_b:
     :param psi:
     :param Nv:
     :param Nx:
@@ -139,14 +136,11 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi):
         return 0
     else:
         return gamma / (v_b - v_a) * (
-                xi_legendre(n=n, v=v_b, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_b, Nv=Nv,
-                                                                        Nx=Nx, v_a=v_a,
-                                                                        v_b=v_b)
-                - xi_legendre(n=n, v=v_a, v_a=v_a, v_b=v_b) * construct_f(state=psi, v=v_a, Nv=Nv, Nx=Nx, v_a=v_a,
-                                                                          v_b=v_b))
+                xi_v_b[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_b, v=v_b, v_a=v_a, v_b=v_b)
+                - xi_v_a[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_a, v=v_b, v_a=v_a, v_b=v_b))
 
 
-def construct_f(state, v, Nv, Nx, v_a, v_b):
+def construct_f(state, Nv, Nx, xi, v, v_a, v_b):
     """
 
     :param v_b:
@@ -157,10 +151,10 @@ def construct_f(state, v, Nv, Nx, v_a, v_b):
     :param v:
     :return:
     """
-    result = np.zeros(Nx)
-    for n in range(Nv):
-        result += state[n * Nx: (n + 1) * Nx] * xi_legendre(n=n, v=v, v_a=v_a, v_b=v_b)
-    return result
+    # result = np.zeros(Nx)
+    # for n in range(Nv):
+    #     result += state[n * Nx: (n + 1) * Nx] * xi[n]
+    return (xi[:, None] * state.reshape(Nv, Nx)).sum(axis=0)
 
 
 def sigma_v2(n, i, v_a, v_b):
@@ -234,8 +228,8 @@ def energy_k_legendre(state, v_a, v_b):
     """
     return sigma_v1(n=1, v_a=v_a, v_b=v_b) * sigma_v1(n=2, v_a=v_a, v_b=v_b) * np.sum(state[2, :]) \
            + 2 * sigma_bar(v_a=v_a, v_b=v_b) * sigma_v1(n=1, v_a=v_a, v_b=v_b) * np.sum(state[1, :]) \
-           + (sigma_v1(n=1, v_a=v_a, v_b=v_b)**2
-              + sigma_v1(n=0, v_a=v_a, v_b=v_b)**2 + sigma_bar(v_a=v_a, v_b=v_b)**2) * np.sum(state[0, :])
+           + (sigma_v1(n=1, v_a=v_a, v_b=v_b) ** 2
+              + sigma_v1(n=0, v_a=v_a, v_b=v_b) ** 2 + sigma_bar(v_a=v_a, v_b=v_b) ** 2) * np.sum(state[0, :])
 
 
 def total_mass_legendre(state, v_a, v_b, dx):

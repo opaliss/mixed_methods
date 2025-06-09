@@ -5,7 +5,7 @@ Last Update: June 6th, 2025
 """
 
 import numpy as np
-from operators.legendre.legendre_operators import A1, sigma_bar, B
+from operators.legendre.legendre_operators import A1, sigma_bar, B, xi_legendre
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -13,6 +13,7 @@ from operators.finite_difference import ddx_central
 class SimulationSetupLegendre:
     def __init__(self, Nx, Nv_e,  epsilon, v_a, v_b, gamma, L, dt, T0, T, nu,
                  m_e=1, m_i=1836, q_e=-1, q_i=1, ions=False, Nv_i=0, problem_dir=None):
+        # velocity grid
         # set up configuration parameters
         # spatial resolution
         self.Nx = Nx
@@ -59,9 +60,18 @@ class SimulationSetupLegendre:
 
         self.B_e = B(Nv=self.Nv_e, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
 
+        # xi functions
+        self.xi_v_a = np.zeros(max(self.Nv_e, self.Nv_i))
+        self.xi_v_b = np.zeros(max(self.Nv_e, self.Nv_i))
+        for nn in range(max(self.Nv_e, self.Nv_i)):
+            self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
+            self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
+
         if ions:
             self.A_i = A1(D=self.D, Nv=self.Nv_i, v_a=v_a, v_b=v_b) \
                    + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_i) \
                    + self.nu * A3(Nx=self.Nx, Nv=self.Nv_i)
 
             self.B_i = B(Nv=self.Nv_i, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
+
+
