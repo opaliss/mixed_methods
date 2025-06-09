@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.legendre.legendre_operators import nonlinear_full_legendre, charge_density, xi_legendre
 from operators.legendre.setup_legendre import SimulationSetupLegendre
 from operators.implicit_midpoint import implicit_midpoint_solver
-import matplotlib.pyplot as plt
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
@@ -28,22 +27,22 @@ def rhs(y):
 
     # evolving only electrons
     return setup.A_e @ y + nonlinear_full_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx,
-                                        q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
-                                          v_a=setup.v_a, v_b=setup.v_b)
+                                                   q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
+                                                   v_a=setup.v_a, v_b=setup.v_b)
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupLegendre(Nx=21,
-                                    Nv_e=50,
+    setup = SimulationSetupLegendre(Nx=101,
+                                    Nv_e=200,
                                     epsilon=1e-2,
                                     v_a=-5,
                                     v_b=5,
                                     gamma=0,
-                                    L=2 * np.pi,
+                                    L=20 * np.pi,
                                     dt=1e-2,
                                     T0=0,
-                                    T=10,
-                                    nu=0)
+                                    T=20,
+                                    nu=10)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros(setup.Nv_e * setup.Nx)
@@ -64,8 +63,8 @@ if __name__ == "__main__":
     # integrate (implicit midpoint)
     sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
                                               right_hand_side=rhs,
-                                              a_tol=1e-8,
-                                              r_tol=1e-8,
+                                              a_tol=1e-10,
+                                              r_tol=1e-10,
                                               max_iter=100,
                                               param=setup)
 
@@ -76,12 +75,12 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/legendre/weak_landau/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+    np.save("../../data/legendre/bump_on_tail/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/legendre/weak_landau/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
+    np.save("../../data/legendre/bump_on_tail/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
             + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/legendre/weak_landau/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+    np.save("../../data/legendre/bump_on_tail/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
