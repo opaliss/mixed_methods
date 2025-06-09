@@ -1,4 +1,4 @@
-"""Module to run Legendre weak_landau Landau damping testcase
+"""Module to run Legendre weak Landau Landau damping testcase
 
 Author: Opal Issan
 Date: June 8th, 2025
@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.legendre.legendre_operators import nonlinear_full, charge_density, xi_legendre
+from operators.legendre.legendre_operators import nonlinear_full_legendre, charge_density, xi_legendre
 from operators.legendre.setup_legendre import SimulationSetupLegendre
 from operators.implicit_midpoint import implicit_midpoint_solver
 import matplotlib.pyplot as plt
@@ -27,9 +27,9 @@ def rhs(y):
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
     # evolving only electrons
-    return setup.A_e @ y + nonlinear_full(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx,
-                                        q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
-                                          v_a=setup.v_a, v_b=setup.v_b)
+    return setup.A_e @ y + nonlinear_full_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx,
+                                                   q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
+                                                   v_a=setup.v_a, v_b=setup.v_b)
 
 
 if __name__ == "__main__":

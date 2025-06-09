@@ -11,7 +11,7 @@ from operators.finite_difference import ddx_central
 
 class SimulationSetupTwoStreamLegendre:
     def __init__(self, Nx,  Nv_e1, Nv_e2, epsilon, v_a, v_b,  L, dt, T0, T,
-                 nu_e1, nu_e2,  n0_e1, n0_e2, FD_order,
+                 nu_e1, nu_e2,  n0_e1, n0_e2, FD_order, gamma=0,
                  periodic=True, nu_i=0, m_e1=1, m_e2=1, m_i=1836, q_e1=-1, q_e2=-1, q_i=1, ions=False, Nv_i=0):
         # set up configuration parameters
         # resolution in space
@@ -25,6 +25,7 @@ class SimulationSetupTwoStreamLegendre:
         # velocity boundaries
         self.v_a = v_a
         self.v_b = v_b
+        self.gamma = gamma
         # average density coefficient
         self.n0_e1 = n0_e1
         self.n0_e2 = n0_e2

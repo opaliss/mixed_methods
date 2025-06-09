@@ -1,4 +1,4 @@
-"""Module to run the bump-on-tail instability Legendre testcase
+"""Module to run Legendre bump on tail Landau damping testcase
 
 Author: Opal Issan
 Date: June 8th, 2025
@@ -7,80 +7,67 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.legendre.legendre_operators import nonlinear_full_legendre, charge_density_two_stream_legendre
+from operators.legendre.legendre_operators import nonlinear_full_legendre, charge_density, xi_legendre
+from operators.legendre.setup_legendre import SimulationSetupLegendre
 from operators.implicit_midpoint import implicit_midpoint_solver
-from operators.legendre.setup_legendre_two_stream import SimulationSetupTwoStreamLegendre
+import matplotlib.pyplot as plt
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
+import scipy
 
 
 def rhs(y):
-    # charge density computed for poisson's equation
-    rho = charge_density_two_stream(C0_e1=y[:setup.Nx],
-                                    C0_e2=y[setup.Nx * setup.Nv_e1: setup.Nx * (setup.Nv_e1 + 1)],
-                                    C0_i=np.ones(setup.Nx) / setup.alpha_i, alpha_e1=setup.alpha_e1, alpha_e2=setup.alpha_e2,
-                                    alpha_i=setup.alpha_i, q_e1=setup.q_e1, q_e2=setup.q_e2, q_i=setup.q_i)
+    # charge density computed
+    rho = charge_density(q_e=setup.q_e, q_i=setup.q_i,
+                         C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx),
+                         v_a=setup.v_a, v_b=setup.v_b)
 
-    # electric field computed
+    # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
-    # initialize the rhs dydt
-    dydt_ = np.zeros(len(y))
-    # evolving electrons
-    # electron species (1) => bulk
-    dydt_[:setup.Nv_e1 * setup.Nx] = setup.A_e1 @ y[:setup.Nv_e1 * setup.Nx] \
-                                  + nonlinear_full(E=E, psi=y[:setup.Nv_e1 * setup.Nx], Nv=setup.Nv_e1, Nx=setup.Nx,
-                                                   q=setup.q_e1, m=setup.m_e1, alpha=setup.alpha_e1)
-
-    # electron species (2) => bump
-    dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e2 @ y[setup.Nv_e1 * setup.Nx:] \
-                                  + nonlinear_full(E=E, psi=y[setup.Nv_e1 * setup.Nx:], Nv=setup.Nv_e2, Nx=setup.Nx,
-                                                   q=setup.q_e2, m=setup.m_e2, alpha=setup.alpha_e2)
-    return dydt_
+    # evolving only electrons
+    return setup.A_e @ y + nonlinear_full_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx,
+                                        q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
+                                          v_a=setup.v_a, v_b=setup.v_b)
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupTwoStreamHermite(Nx=151,
-                                            Nv_e1=200,
-                                            Nv_e2=350,
-                                            epsilon=1e-3,
-                                            alpha_e1=np.sqrt(2),
-                                            alpha_e2=1 / np.sqrt(2),
-                                            alpha_i=np.sqrt(2 / 1836),
-                                            u_e1=0,
-                                            u_e2=4.5,
-                                            u_i=0,
-                                            L=20 * np.pi / 3,
-                                            dt=1e-2,
-                                            T0=0,
-                                            T=35,
-                                            nu_e1=20,
-                                            nu_e2=20,
-                                            n0_e1=0.9,
-                                            n0_e2=0.1,
-                                            FD_order=2)
+    setup = SimulationSetupLegendre(Nx=21,
+                                    Nv_e=50,
+                                    epsilon=1e-2,
+                                    v_a=-5,
+                                    v_b=5,
+                                    gamma=0,
+                                    L=2 * np.pi,
+                                    dt=1e-2,
+                                    T0=0,
+                                    T=10,
+                                    nu=0)
 
     # initial condition: read in result from previous simulation
-    # ions (unperturbed + static)
-    y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
+    y0 = np.zeros(setup.Nv_e * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = setup.n0_e1 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
-    # second electron species (unperturbed)
-    y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * np.ones(setup.Nx) / setup.alpha_e2
+    v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
+    x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+    for nn in range(setup.Nv_e):
+        xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
+        exp_ = 0.9 * np.exp(-0.5 * (v_ ** 2)) / np.sqrt(2) + 0.1 * np.exp(-2 * ((v_ - 4.5) ** 2)) * np.sqrt(2)
+        v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
+        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
 
     # start timer
     start_time_cpu = time.process_time()
     start_time_wall = time.time()
 
     # integrate (implicit midpoint)
-    sol_midpoint_u, setup = implicit_midpoint_solver(y_0=y0,
-                                                     right_hand_side=rhs,
-                                                     r_tol=1e-10,
-                                                     a_tol=1e-10,
-                                                     max_iter=100,
-                                                     param=setup)
+    sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
+                                              right_hand_side=rhs,
+                                              a_tol=1e-8,
+                                              r_tol=1e-8,
+                                              max_iter=100,
+                                              param=setup)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall
@@ -88,16 +75,13 @@ if __name__ == "__main__":
     print("runtime cpu = ", end_time_cpu)
     print("runtime wall = ", end_time_wall)
 
-    # save runtime
-    np.save("../data/hermite/bump_on_tail/sol_runtime_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
-            + "_" + str(setup.T) + ".npy", np.array([end_time_cpu, end_time_wall]))
+    # save the runtime
+    np.save("../../data/legendre/weak_landau/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../data/hermite/bump_on_tail/sol_u_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", sol_midpoint_u)
+    np.save("../../data/legendre/weak_landau/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
+            + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../data/hermite/bump_on_tail/sol_t_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
+    np.save("../../data/legendre/weak_landau/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
