@@ -63,4 +63,4 @@ def implicit_midpoint_solver(y_0, right_hand_side, param, r_tol=1e-5, a_tol=1e-8
                                      f_tol=a_tol,
                                      f_rtol=r_tol,
                                      verbose=True)
-    return y_sol, param
+    return y_sol

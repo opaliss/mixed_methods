@@ -20,8 +20,6 @@ class SimulationSetupTwoStreamHermite:
         self.Nv_e1 = Nv_e1
         self.Nv_e2 = Nv_e2
         self.Nv_i = Nv_i
-        # total DOF for each species
-        # self.N = self.Nv * self.Nx
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
         # velocity boundaries

@@ -10,8 +10,8 @@ from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
 
-class SimulationSetupHermite:
-    def __init__(self, Nx, Nv_e,  epsilon, v_a, v_b,  L, dt, T0, T, nu,
+class SimulationSetupLegendre:
+    def __init__(self, Nx, Nv_e,  epsilon, v_a, v_b, gamma, L, dt, T0, T, nu,
                  m_e=1, m_i=1836, q_e=-1, q_i=1, ions=False, Nv_i=0, problem_dir=None):
         # set up configuration parameters
         # spatial resolution
@@ -19,13 +19,13 @@ class SimulationSetupHermite:
         # velocity resolution
         self.Nv_e = Nv_e
         self.Nv_i = Nv_i
-        # total number of DOF for each species
-        self.N = self.Nx * self.Nv_e
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
         # velocity boundaries
         self.v_a = v_a
         self.v_b = v_b
+        # penalty magnitude
+        self.gamma = gamma
         # x grid is from 0 to L
         self.L = L
         self.dx = self.L / self.Nx
