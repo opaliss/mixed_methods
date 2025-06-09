@@ -1,5 +1,82 @@
 """module to setup mixed (static) method with bulk Hermite and beam Legendre
 
+ions are treated as stationary
+
 Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 9th, 2025
 """
+
+import numpy as np
+from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
+from operators.hermite.hermite_operators import A1_hermite
+from operators.universal_functions import get_D_inv, A2, A3
+from operators.finite_difference import ddx_central
+
+
+class SimulationSetupMixedMethod:
+    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu,
+                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
+        # velocity grid
+        # set up configuration parameters
+        # spatial resolution
+        self.Nx = Nx
+        # velocity resolution
+        self.Nv_H = Nv_H
+        self.Nv_L = Nv_L
+        # epsilon displacement in initial electron distribution
+        self.epsilon = epsilon
+        # velocity boundaries
+        self.v_a = v_a
+        self.v_b = v_b
+        # hermite scaling and shifting parameters
+        self.alpha = alpha
+        self.u = u
+        # penalty magnitude
+        self.gamma = gamma
+        # x grid is from 0 to L
+        self.L = L
+        self.dx = self.L / self.Nx
+        # time stepping delta t
+        self.dt = dt
+        # final time
+        self.T = T
+        # initial start
+        self.T0 = T0
+        # vector of timestamps
+        self.t_vec = np.linspace(self.T0, self.T, int((self.T - self.T0) / self.dt) + 1)
+        # mass normalized
+        self.m_e = m_e
+        self.m_i = m_i
+        # charge normalized
+        self.q_e = q_e
+        self.q_i = q_i
+        # artificial collisional frequency
+        self.nu = nu
+        # directory name
+        self.problem_dir = problem_dir
+
+        # matrices
+        # finite difference derivative matrix
+        self.D = ddx_central(Nx=self.Nx+1, dx=self.dx, periodic=True, order=2)
+        self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
+
+        # Hermite operator
+        self.A_e_H = self.alpha * A1_hermite(D=self.D, Nv=self.Nv_H) \
+                   + self.u * A2(D=self.D, Nv=self.Nv_H) \
+                   + self.nu * A3(Nx=self.Nx, Nv=self.Nv_H)
+
+
+        # Legendre operators
+        self.A_e_L = A1_legendre(D=self.D, Nv=self.Nv_L, v_a=v_a, v_b=v_b) \
+                   + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_L) \
+                   + self.nu * A3(Nx=self.Nx, Nv=self.Nv_L)
+
+        self.B_e_L = B_legendre(Nv=self.Nv_L, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
+
+        # xi functions
+        self.xi_v_a = np.zeros(self.Nv_H)
+        self.xi_v_b = np.zeros(self.Nv_H)
+        for nn in range(self.Nv_H):
+            self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
+            self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
+

@@ -18,7 +18,8 @@ import scipy
 
 def rhs(y):
     # charge density computed
-    rho = charge_density_legendre(q_e=setup.q_e, q_i=setup.q_i, C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx),
+    rho = charge_density_legendre(q_e=setup.q_e, q_i=setup.q_i, C0_e=y[:setup.Nx],
+                                  C0_i=np.ones(setup.Nx)/(setup.v_b - setup.v_a),
                                   v_a=setup.v_a, v_b=setup.v_b)
 
     # electric field computed (poisson solver)

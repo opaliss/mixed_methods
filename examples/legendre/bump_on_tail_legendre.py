@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.legendre.legendre_operators import nonlinear_legendre, charge_density, xi_legendre
+from operators.legendre.legendre_operators import nonlinear_legendre, charge_density_legendre, xi_legendre
 from operators.legendre.setup_legendre import SimulationSetupLegendre
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
@@ -18,9 +18,9 @@ import scipy
 
 def rhs(y):
     # charge density computed
-    rho = charge_density(q_e=setup.q_e, q_i=setup.q_i,
-                         C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx),
-                         v_a=setup.v_a, v_b=setup.v_b)
+    rho = charge_density_legendre(q_e=setup.q_e, q_i=setup.q_i,
+                                  C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx)/(setup.v_b - setup.v_a),
+                                  v_a=setup.v_a, v_b=setup.v_b)
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
