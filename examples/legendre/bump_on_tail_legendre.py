@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.legendre.legendre_operators import nonlinear_full_legendre, charge_density, xi_legendre
+from operators.legendre.legendre_operators import nonlinear_legendre, charge_density, xi_legendre
 from operators.legendre.setup_legendre import SimulationSetupLegendre
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
@@ -26,9 +26,9 @@ def rhs(y):
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
     # evolving only electrons
-    return setup.A_e @ y + nonlinear_full_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx, B_mat=setup.B_e,
-                                                   q=setup.q_e, m=setup.m_e, gamma=setup.gamma, v_a=setup.v_a, v_b=setup.v_b,
-                                                   xi_v_a=setup.xi_v_a, xi_v_b=setup.xi_v_b)
+    return setup.A_e @ y + nonlinear_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx, B_mat=setup.B_e,
+                                              q=setup.q_e, m=setup.m_e, gamma=setup.gamma, v_a=setup.v_a, v_b=setup.v_b,
+                                              xi_v_a=setup.xi_v_a, xi_v_b=setup.xi_v_b)
 
 
 if __name__ == "__main__":

@@ -4,7 +4,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
-from operators.hermite.hermite_operators import A1
+from operators.hermite.hermite_operators import A1_hermite
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -59,7 +59,7 @@ class SimulationSetupHermite:
 
         # matrix of coefficients (advection)
         A_diag = A2(D=self.D, Nv=self.Nv)
-        A_off = A1(D=self.D, Nv=self.Nv)
+        A_off = A1_hermite(D=self.D, Nv=self.Nv)
         A_col = A3(Nx=self.Nx, Nv=self.Nv)
 
         self.A_e = self.alpha_e * A_off + self.u_e * A_diag + self.nu * A_col

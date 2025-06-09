@@ -7,7 +7,7 @@ import numpy as np
 import scipy
 
 
-def psi_ln_aw(n, alpha_s, u_s, v):
+def psi_hermite(n, alpha_s, u_s, v):
     """AW Hermite basis function (iterative approach)
 
     :param alpha_s: float, velocity scaling parameter
@@ -33,7 +33,7 @@ def psi_ln_aw(n, alpha_s, u_s, v):
     return psi[n, :]
 
 
-def A1(D, Nv):
+def A1_hermite(D, Nv):
     """A1 matrix advection term with alpha
 
     :param D: 2d array (matrix), finite difference derivative matrix
@@ -51,7 +51,7 @@ def A1(D, Nv):
     return -scipy.sparse.kron(A, D, format="csr")
 
 
-def nonlinear_full(E, psi, q, m, alpha, Nv, Nx):
+def nonlinear_hermite(E, psi, q, m, alpha, Nv, Nx):
     """compute acceleration term (nonlinear)
 
     :param E: 1d array, electric field on finite difference mesh
@@ -70,7 +70,7 @@ def nonlinear_full(E, psi, q, m, alpha, Nv, Nx):
     return res
 
 
-def charge_density(q_e, q_i, alpha_e, alpha_i, C0_e, C0_i):
+def charge_density_hermite(q_e, q_i, alpha_e, alpha_i, C0_e, C0_i):
     """charge density (right hand side of Poisson equation)
 
     :param q_e: float, charge of electrons
@@ -84,7 +84,7 @@ def charge_density(q_e, q_i, alpha_e, alpha_i, C0_e, C0_i):
     return q_e * alpha_e * C0_e + q_i * alpha_i * C0_i
 
 
-def mass(state):
+def mass_hermite(state):
     """mass of a single specie
 
     :param state: 1d array, electron or ion state
@@ -93,7 +93,7 @@ def mass(state):
     return np.sum(state[0, :])
 
 
-def momentum(state, u_s, alpha_s):
+def momentum_hermite(state, u_s, alpha_s):
     """momentum of a single specie
 
     :param state: 1d array, electron or ion state
@@ -104,7 +104,7 @@ def momentum(state, u_s, alpha_s):
     return alpha_s * np.sum(state[1, :]) / np.sqrt(2) + u_s * np.sum(state[0, :])
 
 
-def energy_k(state, u_s, alpha_s):
+def energy_k_hermite(state, u_s, alpha_s):
     """kinetic energy of a single specie
 
     :param state: 1d array, electron or ion state
@@ -116,7 +116,7 @@ def energy_k(state, u_s, alpha_s):
            + (alpha_s**2/2 + u_s**2) * np.sum(state[0, :])
 
 
-def total_mass(state, alpha_s, dx):
+def total_mass_hermite(state, alpha_s, dx):
     """total mass of single electron and ion setup
 
     :param state: 1d array, species s state
@@ -124,7 +124,7 @@ def total_mass(state, alpha_s, dx):
     :param dx: float, spatial spacing
     :return: total mass of single electron and ion setup
     """
-    return mass(state=state) * dx * alpha_s
+    return mass_hermite(state=state) * dx * alpha_s
 
 
 def total_momentum(state, alpha_s, dx, m_s, u_s):
@@ -137,10 +137,10 @@ def total_momentum(state, alpha_s, dx, m_s, u_s):
     :param u_s: float, velocity shifting parameter of species s
     :return: total momentum of single electron and ion setup
     """
-    return momentum(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
+    return momentum_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
 
 
-def total_energy_k(state, alpha_s, dx,  m_s, u_s):
+def total_energy_k_hermite(state, alpha_s, dx,  m_s, u_s):
     """total kinetic energy of single electron and ion setup
 
     :param state: 1d array, species s  state
@@ -150,10 +150,10 @@ def total_energy_k(state, alpha_s, dx,  m_s, u_s):
     :param u_s: float, velocity shifting parameter of species s
     :return: total kinetic energy of single electron and ion setup
     """
-    return 0.5 * energy_k(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
+    return 0.5 * energy_k_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
 
 
-def charge_density_two_stream(q_e1, q_e2, q_i, alpha_e1, alpha_e2, alpha_i, C0_e1, C0_e2, C0_i):
+def charge_density_two_stream_hermite(q_e1, q_e2, q_i, alpha_e1, alpha_e2, alpha_i, C0_e1, C0_e2, C0_i):
     """charge density (right hand side of Poisson equation)
 
     :param q_e1: float, charge of electrons species 1

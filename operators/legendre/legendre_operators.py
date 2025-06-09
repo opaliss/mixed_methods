@@ -44,7 +44,7 @@ def xi_legendre(n, v, v_a, v_b):
             return xi[n, :] * np.sqrt(2 * n + 1)
 
 
-def A1(D, Nv, v_a, v_b):
+def A1_legendre(D, Nv, v_a, v_b):
     """A1 matrix advection term with sigma
 
     :param D: 2d array (matrix), finite difference derivative matrix
@@ -64,7 +64,7 @@ def A1(D, Nv, v_a, v_b):
     return -scipy.sparse.kron(A, D, format="csr")
 
 
-def B(Nv, Nx, v_a, v_b):
+def B_legendre(Nv, Nx, v_a, v_b):
     """B matrix acceleration term with sigma
 
     :param Nv: int, velocity spectral resolution
@@ -96,9 +96,13 @@ def sigma_v1(n, v_a, v_b):
         return 0
 
 
-def nonlinear_full_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma, v_a, v_b, xi_v_a, xi_v_b):
+def nonlinear_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma, v_a, v_b, xi_v_a, xi_v_b):
     """compute acceleration term (nonlinear)
 
+    :param xi_v_b:
+    :param xi_v_a:
+    :param v_b:
+    :param v_a:
     :param E: 1d array, electric field on finite difference mesh
     :param psi: 1d array, vector of all coefficients
     :param q: float, charge of particles
@@ -135,12 +139,11 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi, xi_v_a, xi_v_b):
     if n < 3:
         return 0
     else:
-        return gamma / (v_b - v_a) * (
-                xi_v_b[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_b, v=v_b, v_a=v_a, v_b=v_b)
-                - xi_v_a[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_a, v=v_b, v_a=v_a, v_b=v_b))
+        return gamma / (v_b - v_a) * (xi_v_b[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_b)
+                                      - xi_v_a[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_a))
 
 
-def construct_f(state, Nv, Nx, xi, v, v_a, v_b):
+def construct_f(state, Nv, Nx, xi):
     """
 
     :param v_b:
@@ -151,9 +154,6 @@ def construct_f(state, Nv, Nx, xi, v, v_a, v_b):
     :param v:
     :return:
     """
-    # result = np.zeros(Nx)
-    # for n in range(Nv):
-    #     result += state[n * Nx: (n + 1) * Nx] * xi[n]
     return (xi[:, None] * state.reshape(Nv, Nx)).sum(axis=0)
 
 
@@ -184,7 +184,7 @@ def sigma_bar(v_a, v_b):
     return 0.5 * (v_a + v_b)
 
 
-def charge_density(q_e, q_i, C0_e, C0_i, v_a, v_b):
+def charge_density_legendre(q_e, q_i, C0_e, C0_i, v_a, v_b):
     """charge density (right hand side of Poisson equation)
 
     :param q_e: float, charge of electrons

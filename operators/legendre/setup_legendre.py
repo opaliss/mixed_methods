@@ -5,7 +5,7 @@ Last Update: June 6th, 2025
 """
 
 import numpy as np
-from operators.legendre.legendre_operators import A1, sigma_bar, B, xi_legendre
+from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -54,11 +54,11 @@ class SimulationSetupLegendre:
         self.D = ddx_central(Nx=self.Nx+1, dx=self.dx, periodic=True, order=2)
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
-        self.A_e = A1(D=self.D, Nv=self.Nv_e, v_a=v_a, v_b=v_b) \
+        self.A_e = A1_legendre(D=self.D, Nv=self.Nv_e, v_a=v_a, v_b=v_b) \
                    + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_e) \
                    + self.nu * A3(Nx=self.Nx, Nv=self.Nv_e)
 
-        self.B_e = B(Nv=self.Nv_e, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
+        self.B_e = B_legendre(Nv=self.Nv_e, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
 
         # xi functions
         self.xi_v_a = np.zeros(max(self.Nv_e, self.Nv_i))
@@ -68,10 +68,10 @@ class SimulationSetupLegendre:
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
 
         if ions:
-            self.A_i = A1(D=self.D, Nv=self.Nv_i, v_a=v_a, v_b=v_b) \
+            self.A_i = A1_legendre(D=self.D, Nv=self.Nv_i, v_a=v_a, v_b=v_b) \
                    + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_i) \
                    + self.nu * A3(Nx=self.Nx, Nv=self.Nv_i)
 
-            self.B_i = B(Nv=self.Nv_i, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
+            self.B_i = B_legendre(Nv=self.Nv_i, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
 
 

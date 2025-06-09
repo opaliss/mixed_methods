@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.hermite.hermite_operators import nonlinear_full, charge_density
+from operators.hermite.hermite_operators import nonlinear_hermite, charge_density_hermite
 from operators.hermite.setup_hermite import SimulationSetupHermite
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
@@ -17,14 +17,14 @@ import numpy as np
 
 def rhs(y):
     # charge density computed
-    rho = charge_density(alpha_e=setup.alpha_e, alpha_i=setup.alpha_i, q_e=setup.q_e, q_i=setup.q_i,
+    rho = charge_density_hermite(alpha_e=setup.alpha_e, alpha_i=setup.alpha_i, q_e=setup.q_e, q_i=setup.q_i,
                          C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx) / setup.alpha_i)
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
     # evolving only electrons
-    return setup.A_e @ y + nonlinear_full(E=E, psi=y, Nv=setup.Nv, Nx=setup.Nx, alpha=setup.alpha_e,
+    return setup.A_e @ y + nonlinear_hermite(E=E, psi=y, Nv=setup.Nv, Nx=setup.Nx, alpha=setup.alpha_e,
                                           q=setup.q_e, m=setup.m_e)
 
 

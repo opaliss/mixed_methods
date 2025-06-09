@@ -4,7 +4,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
-from operators.hermite.hermite_operators import A1
+from operators.hermite.hermite_operators import A1_hermite
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -69,14 +69,14 @@ class SimulationSetupTwoStreamHermite:
 
         # A matrices
         self.A_e1 = self.u_e1 * A2(D=self.D, Nv=self.Nv_e1) \
-                    + self.alpha_e1 * A1(D=self.D, Nv=self.Nv_e1) \
+                    + self.alpha_e1 * A1_hermite(D=self.D, Nv=self.Nv_e1) \
                     + self.nu_e1 * A3(Nx=self.Nx, Nv=self.Nv_e1)
         self.A_e2 = self.u_e2 * A2(D=self.D, Nv=self.Nv_e2) \
-                    + self.alpha_e2 * A1(D=self.D, Nv=self.Nv_e2) \
+                    + self.alpha_e2 * A1_hermite(D=self.D, Nv=self.Nv_e2) \
                     + self.nu_e2 * A3(Nx=self.Nx, Nv=self.Nv_e2)
 
         # if ions evolve
         if ions:
             self.A_i = self.u_i * A2(D=self.D, Nv=self.Nv_i) \
-                       + self.alpha_i * A1(D=self.D, Nv=self.Nv_i) \
+                       + self.alpha_i * A1_hermite(D=self.D, Nv=self.Nv_i) \
                        + self.nu_i * A3(Nx=self.Nx, Nv=self.Nv_i)
