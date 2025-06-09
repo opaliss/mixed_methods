@@ -26,9 +26,8 @@ def rhs(y):
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
     # evolving only electrons
-    return setup.A_e @ y + nonlinear_full_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx,
-                                                   q=setup.q_e, m=setup.m_e, gamma=setup.gamma,
-                                                   v_a=setup.v_a, v_b=setup.v_b)
+    return setup.A_e @ y + nonlinear_full_legendre(E=E, psi=y, Nv=setup.Nv_e, Nx=setup.Nx, B_mat=setup.B_e,
+                                                   q=setup.q_e, m=setup.m_e, gamma=setup.gamma)
 
 
 if __name__ == "__main__":
@@ -41,8 +40,8 @@ if __name__ == "__main__":
                                     L=20 * np.pi / 3,
                                     dt=1e-2,
                                     T0=0,
-                                    T=30,
-                                    nu=10)
+                                    T=20,
+                                    nu=20)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros(setup.Nv_e * setup.Nx)

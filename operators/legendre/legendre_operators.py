@@ -64,6 +64,24 @@ def A1(D, Nv, v_a, v_b):
     return -scipy.sparse.kron(A, D, format="csr")
 
 
+def B(Nv, Nx, v_a, v_b):
+    """B matrix acceleration term with sigma
+
+    :param Nv: int, velocity spectral resolution
+    :param Nx: int, spatial resolution
+    :param v_a: float, lower velocity boundary
+    :param v_b: float, upper velocity boundary
+    :return: 2d array (matrix), A1 matrix in advection term
+    """
+    B = np.zeros((Nv, Nv))
+    for nn in range(Nv):
+        if nn != 0:
+            for ii in range(nn):
+                # lower diagonal
+                B[nn, ii] = sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
+    return scipy.sparse.kron(B, scipy.sparse.identity(n=Nx), format="csr")
+
+
 def sigma_v1(n, v_a, v_b):
     """sigma(n)
 
@@ -78,7 +96,7 @@ def sigma_v1(n, v_a, v_b):
         return 0
 
 
-def nonlinear_full_legendre(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
+def nonlinear_full_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma):
     """compute acceleration term (nonlinear)
 
     :param E: 1d array, electric field on finite difference mesh
@@ -92,15 +110,16 @@ def nonlinear_full_legendre(E, psi, q, m, v_a, v_b, Nv, Nx, gamma):
     :param gamma: float, penalty term
     :return: N(E, psi)
     """
-    res = np.zeros(len(psi))
-    for nn in range(Nv):
-        if nn != 0:
-            for ii in range(nn):
-                sig = sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
-                res[nn * Nx: (nn + 1) * Nx] += psi[ii * Nx: (ii + 1) * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
-        if gamma != 0:
-            res[nn * Nx: (nn + 1) * Nx] += boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv, psi=psi)
-        # res[nn * Nx: (nn + 1) * Nx] *= q / m * E
+    # res = np.zeros(len(psi))
+    # # for nn in range(Nv):
+    # #     if nn != 0:
+    # #         for ii in range(nn):
+    # #             sig = sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
+    # #             res[nn * Nx: (nn + 1) * Nx] += psi[ii * Nx: (ii + 1) * Nx] * sigma_v2(n=nn, i=ii, v_a=v_a, v_b=v_b)
+    # #     if gamma != 0:
+    # #         res[nn * Nx: (nn + 1) * Nx] += boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv, psi=psi)
+    # #     # res[nn * Nx: (nn + 1) * Nx] *= q / m * E
+    res = B_mat @ psi
     return (res.reshape(Nv, Nx) * q / m * E).flatten()
 
 

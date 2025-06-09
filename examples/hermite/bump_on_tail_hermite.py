@@ -42,9 +42,9 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupTwoStreamHermite(Nx=101,
-                                            Nv_e1=100,
-                                            Nv_e2=100,
+    setup = SimulationSetupTwoStreamHermite(Nx=51,
+                                            Nv_e1=50,
+                                            Nv_e2=50,
                                             epsilon=1e-2,
                                             alpha_e1=np.sqrt(2),
                                             alpha_e2=1 / np.sqrt(2),
@@ -69,7 +69,9 @@ if __name__ == "__main__":
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     y0[:setup.Nx] = setup.n0_e1 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
     # second electron species (unperturbed)
-    y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e2
+    y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 *\
+                                                                    (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) \
+                                                                    / setup.alpha_e2
 
     # start timer
     start_time_cpu = time.process_time()
