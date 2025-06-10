@@ -73,7 +73,7 @@ if __name__ == "__main__":
     y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)
     # bulk electrons => hermite
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = 0.9 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha
+    y0[:setup.Nx] = 0.9 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha
     # beam electrons => legendre
     v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
     x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
