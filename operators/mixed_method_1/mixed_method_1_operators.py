@@ -6,10 +6,9 @@ Last Update: June 9th, 2025
 import numpy as np
 
 
-def extra_term_1(n, LH_int, v_b, v_a, C_hermite_last, alpha, Nv_H, D, E):
+def extra_term_1(LH_int, v_b, v_a, C_hermite_last, alpha, Nv_H, D, E):
     """
 
-    :param n:
     :param LH_int:
     :param v_b:
     :param v_a:
@@ -21,7 +20,7 @@ def extra_term_1(n, LH_int, v_b, v_a, C_hermite_last, alpha, Nv_H, D, E):
     :return:
     """
     A = alpha * np.sqrt(Nv_H / 2) * (D @ C_hermite_last - 2 / (alpha ** 2) * E * C_hermite_last)
-    return - A / (v_b - v_a) * LH_int[n]
+    return - 1 / (v_b - v_a) * np.kron(LH_int, A)
 
 
 

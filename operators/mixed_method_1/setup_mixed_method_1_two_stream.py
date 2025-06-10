@@ -13,7 +13,7 @@ from operators.finite_difference import ddx_central
 import scipy
 
 
-class SimulationSetupMixedMethod0:
+class SimulationSetupMixedMethod1:
     def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu_H, nu_L, Nv_int=1000,
                  m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
