@@ -18,7 +18,7 @@ def extra_term_2(LH_int_2, Nv_H, D, Nx, state_legendre, Nv_L):
     :return:
     """
     res = np.zeros(Nx * Nv_H)
-    res[(Nv_H - 1) * Nx: Nv_H * Nx] = np.sqrt(Nv_H / 2) * D @ \
+    res[(Nv_H - 1) * Nx: Nv_H * Nx] = - np.sqrt(Nv_H / 2) * D @ \
                                       ((LH_int_2[:, None] * state_legendre.reshape(Nv_L, Nx)).sum(axis=0))
 
     return res

@@ -85,17 +85,17 @@ class SimulationSetupMixedMethod2:
         self.LH_int_2 = np.zeros(self.Nv_L)
         self.LH_int_3 = np.zeros(self.Nv_L)
         for nn in range(self.Nv_L):
-            self.LH_int_1[nn] = scipy.integrate.trapezoid(xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b)
-                                                          * psi_hermite(n=self.Nv_H, alpha_s=self.alpha, u_s=self.u,
-                                                                        v=v_),
-                                                          x=v_, dx=np.abs(v_[1] - v_[0]))
+            func1 = xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b) * psi_hermite(n=self.Nv_H, alpha_s=self.alpha,
+                                                                                      u_s=self.u,
+                                                                                      v=v_)
+            self.LH_int_1[nn] = scipy.integrate.trapezoid(func1, x=v_, dx=np.abs(v_[1] - v_[0]))
 
-            self.LH_int_2[nn] = scipy.integrate.trapezoid(xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b)
-                                                          * psi_hermite_complement(n=self.Nv_H, alpha_s=self.alpha,
-                                                                                   u_s=self.u, v=v_),
-                                                          x=v_, dx=np.abs(v_[1] - v_[0]))
+            func2 = xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b) * psi_hermite_complement(n=self.Nv_H,
+                                                                                                 alpha_s=self.alpha,
+                                                                                                 u_s=self.u, v=v_)
+            self.LH_int_2[nn] = scipy.integrate.trapezoid(func2, x=v_, dx=np.abs(v_[1] - v_[0]))
 
-            self.LH_int_3[nn] = scipy.integrate.trapezoid(xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b)
-                                                          * psi_hermite(n=self.Nv_H-1, alpha_s=self.alpha,
-                                                                        u_s=self.u, v=v_),
-                                                          x=v_, dx=np.abs(v_[1] - v_[0]))
+            func3 = xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b) * psi_hermite(n=self.Nv_H - 1,
+                                                                                      alpha_s=self.alpha,
+                                                                                      u_s=self.u, v=v_)
+            self.LH_int_3[nn] = scipy.integrate.trapezoid(func3, x=v_, dx=np.abs(v_[1] - v_[0]))
