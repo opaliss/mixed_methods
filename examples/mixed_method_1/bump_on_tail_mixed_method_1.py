@@ -54,7 +54,7 @@ def rhs(y):
                                     + extra_term_1(LH_int=setup.LH_int,
                                                    v_b=setup.v_b,
                                                    v_a=setup.v_a,
-                                                   C_hermite_last=dydt_[(setup.Nv_H - 1) * setup.Nx:setup.Nv_H * setup.Nx],
+                                                   C_hermite_last=dydt_[(setup.Nv_H - 1) * setup.Nx: setup.Nv_H * setup.Nx],
                                                    alpha=setup.alpha,
                                                    Nv_H=setup.Nv_H,
                                                    D=setup.D,
@@ -64,20 +64,20 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod1(Nx=51,
+    setup = SimulationSetupMixedMethod1(Nx=101,
                                         Nv_H=50,
-                                        Nv_L=100,
+                                        Nv_L=50,
                                         epsilon=1e-2,
-                                        v_a=-7,
-                                        v_b=7,
+                                        v_a=-8,
+                                        v_b=8,
                                         alpha=np.sqrt(2),
                                         u=0,
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=20,
+                                        T=40,
                                         nu_L=1,
-                                        nu_H=10,
+                                        nu_H=20,
                                         gamma=0.5)
 
     # initial condition: read in result from previous simulation

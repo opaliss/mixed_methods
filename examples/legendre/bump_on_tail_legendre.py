@@ -33,14 +33,14 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupLegendre(Nx=51,
-                                    Nv_e=100,
+                                    Nv_e=150,
                                     epsilon=1e-2,
-                                    v_a=-7,
-                                    v_b=7,
+                                    v_a=-8,
+                                    v_b=8,
                                     L=20 * np.pi / 3,
                                     dt=1e-2,
                                     T0=0,
-                                    T=20,
+                                    T=40,
                                     nu=1,
                                     gamma=0.5)
 
