@@ -1,4 +1,4 @@
-"""Module to run mixed method #1 (static) bump on tail testcase
+"""Module to run mixed method #1 bump on tail testcase
 
 Author: Opal Issan
 Date: June 9th, 2025
