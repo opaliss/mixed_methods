@@ -17,19 +17,19 @@ def psi_hermite(n, alpha_s, u_s, v):
     :return: float or 1d array, AW hermite polynomial of degree n evaluated at xi
     """
     # scaled velocity coordinate
-    xi = (v - u_s)/alpha_s
+    xi = (v - u_s) / alpha_s
     # iteratively compute psi_{n}(xi)
     if n == 0:
         return np.exp(-xi ** 2) / np.sqrt(np.pi)
     if n == 1:
-        return np.exp(-xi ** 2) * (2*xi)/np.sqrt(2*np.pi)
+        return np.exp(-xi ** 2) * (2 * xi) / np.sqrt(2 * np.pi)
     else:
-        psi = np.zeros((n+1, len(xi)))
+        psi = np.zeros((n + 1, len(xi)))
         psi[0, :] = np.exp(-xi ** 2) / np.sqrt(np.pi)
-        psi[1, :] = np.exp(-xi ** 2) * (2*xi) / np.sqrt(2*np.pi)
+        psi[1, :] = np.exp(-xi ** 2) * (2 * xi) / np.sqrt(2 * np.pi)
         for jj in range(1, n):
-            factor = - alpha_s * np.sqrt((jj+1)/2)
-            psi[jj+1, :] = (alpha_s * np.sqrt(jj/2) * psi[jj-1, :] + u_s * psi[jj, :] - v * psi[jj, :]) / factor
+            factor = - alpha_s * np.sqrt((jj + 1) / 2)
+            psi[jj + 1, :] = (alpha_s * np.sqrt(jj / 2) * psi[jj - 1, :] + u_s * psi[jj, :] - v * psi[jj, :]) / factor
     return psi[n, :]
 
 
@@ -66,7 +66,7 @@ def nonlinear_hermite(E, psi, q, m, alpha, Nv, Nx):
     res = np.zeros(len(psi))
     for n in range(Nv):
         if n != 0:
-            res[n*Nx: (n+1)*Nx] = q/m/alpha * np.sqrt(2*n) * E * psi[(n-1)*Nx: n*Nx]
+            res[n * Nx: (n + 1) * Nx] = q / m / alpha * np.sqrt(2 * n) * E * psi[(n - 1) * Nx: n * Nx]
     return res
 
 
@@ -112,8 +112,8 @@ def energy_k_hermite(state, u_s, alpha_s):
     :param alpha_s: float, the velocity scaling parameter of species s
     :return: kinetic energy for the state
     """
-    return (alpha_s**2) / np.sqrt(2) * np.sum(state[2, :]) + np.sqrt(2) * u_s * alpha_s * np.sum(state[1, :]) \
-           + (alpha_s**2/2 + u_s**2) * np.sum(state[0, :])
+    return (alpha_s ** 2) / np.sqrt(2) * np.sum(state[2, :]) + np.sqrt(2) * u_s * alpha_s * np.sum(state[1, :]) \
+           + (alpha_s ** 2 / 2 + u_s ** 2) * np.sum(state[0, :])
 
 
 def total_mass_hermite(state, alpha_s, dx):
@@ -127,7 +127,7 @@ def total_mass_hermite(state, alpha_s, dx):
     return mass_hermite(state=state) * dx * alpha_s
 
 
-def total_momentum(state, alpha_s, dx, m_s, u_s):
+def total_momentum_hermite(state, alpha_s, dx, m_s, u_s):
     """total momentum of single electron and ion setup
 
     :param state: 1d array, species s state
@@ -140,7 +140,7 @@ def total_momentum(state, alpha_s, dx, m_s, u_s):
     return momentum_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
 
 
-def total_energy_k_hermite(state, alpha_s, dx,  m_s, u_s):
+def total_energy_k_hermite(state, alpha_s, dx, m_s, u_s):
     """total kinetic energy of single electron and ion setup
 
     :param state: 1d array, species s  state
