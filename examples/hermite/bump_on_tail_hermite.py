@@ -42,9 +42,9 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupTwoStreamHermite(Nx=51,
-                                            Nv_e1=50,
-                                            Nv_e2=50,
+    setup = SimulationSetupTwoStreamHermite(Nx=101,
+                                            Nv_e1=100,
+                                            Nv_e2=100,
                                             epsilon=1e-2,
                                             alpha_e1=np.sqrt(2),
                                             alpha_e2=1 / np.sqrt(2),
@@ -55,9 +55,9 @@ if __name__ == "__main__":
                                             L=20 * np.pi / 3,
                                             dt=1e-2,
                                             T0=0,
-                                            T=20,
-                                            nu_e1=10,
-                                            nu_e2=10,
+                                            T=40,
+                                            nu_e1=20,
+                                            nu_e2=20,
                                             n0_e1=0.9,
                                             n0_e2=0.1,
                                             FD_order=2)

@@ -66,7 +66,7 @@ if __name__ == "__main__":
                                         T0=0,
                                         T=40,
                                         nu_L=10,
-                                        nu_H=10,
+                                        nu_H=20,
                                         gamma=0.5)
 
     # initial condition: read in result from previous simulation
