@@ -3,7 +3,6 @@
 Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 9th, 2025
 """
-import numpy as np
 
 
 def charge_density_two_stream_mixed_method_0(q_e, alpha_e, v_a, v_b, C0_e_hermite, C0_e_legendre):
