@@ -13,8 +13,8 @@ from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
 
-class SimulationSetupMixedMethod:
-    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu,
+class SimulationSetupMixedMethod0:
+    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu_H, nu_L,
                  m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
@@ -51,32 +51,31 @@ class SimulationSetupMixedMethod:
         self.q_e = q_e
         self.q_i = q_i
         # artificial collisional frequency
-        self.nu = nu
+        self.nu_H = nu_H
+        self.nu_L = nu_L
         # directory name
         self.problem_dir = problem_dir
 
         # matrices
         # finite difference derivative matrix
-        self.D = ddx_central(Nx=self.Nx+1, dx=self.dx, periodic=True, order=2)
+        self.D = ddx_central(Nx=self.Nx + 1, dx=self.dx, periodic=True, order=2)
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # Hermite operator
         self.A_e_H = self.alpha * A1_hermite(D=self.D, Nv=self.Nv_H) \
-                   + self.u * A2(D=self.D, Nv=self.Nv_H) \
-                   + self.nu * A3(Nx=self.Nx, Nv=self.Nv_H)
-
+                     + self.u * A2(D=self.D, Nv=self.Nv_H) \
+                     + self.nu_H * A3(Nx=self.Nx, Nv=self.Nv_H)
 
         # Legendre operators
         self.A_e_L = A1_legendre(D=self.D, Nv=self.Nv_L, v_a=v_a, v_b=v_b) \
-                   + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_L) \
-                   + self.nu * A3(Nx=self.Nx, Nv=self.Nv_L)
+                     + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_L) \
+                     + self.nu_L * A3(Nx=self.Nx, Nv=self.Nv_L)
 
         self.B_e_L = B_legendre(Nv=self.Nv_L, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
 
         # xi functions
-        self.xi_v_a = np.zeros(self.Nv_H)
-        self.xi_v_b = np.zeros(self.Nv_H)
-        for nn in range(self.Nv_H):
+        self.xi_v_a = np.zeros(self.Nv_L)
+        self.xi_v_b = np.zeros(self.Nv_L)
+        for nn in range(self.Nv_L):
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
-
