@@ -33,15 +33,15 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupLegendre(Nx=101,
-                                    Nv_e=200,
+                                    Nv_e=201,
                                     epsilon=1e-2,
-                                    v_a=-8,
-                                    v_b=8,
+                                    v_a=-10,
+                                    v_b=10,
                                     L=20 * np.pi / 3,
                                     dt=1e-2,
                                     T0=0,
                                     T=40,
-                                    nu=10,
+                                    nu=1,
                                     gamma=0.5)
 
     # initial condition: read in result from previous simulation

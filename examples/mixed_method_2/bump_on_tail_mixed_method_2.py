@@ -104,14 +104,13 @@ if __name__ == "__main__":
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     y0[:setup.Nx] = 0.9 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha
     # beam electrons => legendre
-    v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
+    v_ = np.linspace(setup.v_a, setup.v_b, 10000, endpoint=True)
     x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_L):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
         exp_ = 0.1 * np.exp(-2 * ((v_ - 4.5) ** 2)) * np.sqrt(2)
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[
-        setup.Nx * setup.Nv_H + nn * setup.Nx: setup.Nx * setup.Nv_H + (nn + 1) * setup.Nx] = x_component * v_component
+        y0[setup.Nx * setup.Nv_H + nn * setup.Nx: setup.Nx * setup.Nv_H + (nn + 1) * setup.Nx] = x_component * v_component
 
     # start timer
     start_time_cpu = time.process_time()
@@ -132,12 +131,12 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_2/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(setup.Nv_L) +
+    np.save("../../data/mixed_method_2_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_2/bump_on_tail/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(setup.Nv_L) +
+    np.save("../../data/mixed_method_2_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_2/bump_on_tail/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(setup.Nv_L) +
+    np.save("../../data/mixed_method_2_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

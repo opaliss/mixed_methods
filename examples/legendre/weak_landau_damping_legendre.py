@@ -33,11 +33,11 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupLegendre(Nx=21,
+    setup = SimulationSetupLegendre(Nx=51,
                                     Nv_e=50,
                                     epsilon=1e-2,
-                                    v_a=-5,
-                                    v_b=5,
+                                    v_a=-10,
+                                    v_b=10,
                                     gamma=0,
                                     L=2 * np.pi,
                                     dt=1e-2,
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     y0 = np.zeros(setup.Nv_e * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
+    v_ = np.linspace(setup.v_a, setup.v_b, 10000, endpoint=True)
     x_component = (1 + setup.epsilon * np.cos(x_)) / np.sqrt(2 * np.pi) / (setup.v_b - setup.v_a)
     for nn in range(setup.Nv_e):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
