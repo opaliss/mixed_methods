@@ -76,7 +76,7 @@ if __name__ == "__main__":
                                         dt=1e-2,
                                         T0=0,
                                         T=40,
-                                        nu_L=10,
+                                        nu_L=5,
                                         nu_H=20,
                                         gamma=0.5)
 
