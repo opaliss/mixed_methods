@@ -54,18 +54,18 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod0(Nx=101,
-                                        Nv_H=200,
+                                        Nv_H=100,
                                         Nv_L=100,
                                         epsilon=1e-2,
-                                        v_a=-8,
-                                        v_b=8,
+                                        v_a=-10,
+                                        v_b=10,
                                         alpha=np.sqrt(2),
                                         u=0,
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
                                         T=40,
-                                        nu_L=5,
+                                        nu_L=1,
                                         nu_H=20,
                                         gamma=0.5)
 

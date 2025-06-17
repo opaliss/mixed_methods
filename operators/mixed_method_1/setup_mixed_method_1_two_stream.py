@@ -7,15 +7,15 @@ Last Update: June 9th, 2025
 """
 import numpy as np
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
-from operators.hermite.hermite_operators import A1_hermite, psi_hermite
+from operators.hermite.hermite_operators import A1_hermite, psi_hermite, psi_hermite_complement
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 import scipy
 
 
 class SimulationSetupMixedMethod1:
-    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu_H, nu_L, Nv_int=10000,
-                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
+    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu_H, nu_L, Nv_int=int(1e4),
+                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=True):
         # velocity grid
         # set up configuration parameters
         # spatial resolution
@@ -80,10 +80,26 @@ class SimulationSetupMixedMethod1:
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
 
-        v_ = np.linspace(v_a, v_b, Nv_int, endpoint=True)
-        self.LH_int = np.zeros(self.Nv_L)
-        for nn in range(self.Nv_L):
-            self.LH_int[nn] = scipy.integrate.trapezoid(xi_legendre(n=nn, v=v_, v_a=self.v_a, v_b=self.v_b)
-                                                        * psi_hermite(n=self.Nv_H, alpha_s=self.alpha, u_s=self.u,
-                                                                      v=v_),
-                                                        x=v_, dx=np.abs(v_[1] - v_[0]))
+        if construct_integrals:
+            v_ = np.linspace(v_a, v_b, Nv_int, endpoint=True)
+            self.LH_int = np.zeros((self.Nv_L, self.Nv_H + 1))
+            self.LH_int_complement = np.zeros((self.Nv_L, self.Nv_H + 1))
+            for mm in range(self.Nv_L):
+                for nn in range(self.Nv_H + 1):
+                    self.LH_int_complement[mm, nn] = scipy.integrate.trapezoid(
+                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                        * psi_hermite_complement(n=nn, alpha_s=self.alpha, u_s=self.u, v=v_),
+                        x=v_, dx=np.abs(v_[1] - v_[0]))
+
+                    if (mm % 2 == 0) and (nn % 2 == 1):
+                        self.LH_int[mm, nn] = 0
+                    elif (mm % 2 == 1) and (nn % 2 == 0):
+                        self.LH_int[mm, nn] = 0
+                    else:
+                        self.LH_int[mm, nn] = scipy.integrate.trapezoid(
+                            xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                            * psi_hermite(n=nn, alpha_s=self.alpha, u_s=self.u, v=v_),
+                            x=v_, dx=np.abs(v_[1] - v_[0]))
+
+
+

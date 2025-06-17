@@ -59,18 +59,17 @@ if __name__ == "__main__":
                                             nu_e1=20,
                                             nu_e2=20,
                                             n0_e1=0.9,
-                                            n0_e2=0.1,
-                                            FD_order=2)
+                                            n0_e2=0.1)
 
     # initial condition: read in result from previous simulation
     # ions (unperturbed + static)
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = setup.n0_e1 * (np.ones(setup.Nx) + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
     # second electron species (unperturbed)
     y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * \
-                                                                    (np.ones(setup.Nx) + setup.epsilon * np.cos(
+                                                                    (1 + setup.epsilon * np.cos(
                                                                         0.3 * x_)) \
                                                                     / setup.alpha_e2
 

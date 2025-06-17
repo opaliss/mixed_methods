@@ -146,12 +146,10 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi, xi_v_a, xi_v_b):
 def construct_f(state, Nv, Nx, xi):
     """
 
-    :param v_b:
-    :param v_a:
+    :param xi:
     :param Nx:
     :param Nv:
     :param state:
-    :param v:
     :return:
     """
     return (xi[:, None] * state.reshape(Nv, Nx)).sum(axis=0)
