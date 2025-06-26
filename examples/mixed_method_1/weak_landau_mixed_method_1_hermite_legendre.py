@@ -1,4 +1,4 @@
-"""Module to run mixed method #1 bump on tail testcase
+"""Module to run mixed method #1 nonlinear landau testcase
 
 Author: Opal Issan
 Date: June 11th, 2025
@@ -8,15 +8,14 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
-from operators.mixed_method_1.mixed_method_1_operators import extra_term_1, closure_term
-from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.hermite.hermite_operators import nonlinear_hermite, psi_hermite_complement
+from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
+from operators.legendre.legendre_operators import nonlinear_legendre
+from operators.hermite.hermite_operators import nonlinear_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
-import scipy
 
 
 def rhs(y):
@@ -75,10 +74,10 @@ if __name__ == "__main__":
                                         v_b=10,
                                         alpha=np.sqrt(2),
                                         u=0,
-                                        L=20 * np.pi / 3,
+                                        L=2 * np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=30,
+                                        T=100,
                                         nu_L=0,
                                         nu_H=0,
                                         gamma=0.5,
@@ -88,15 +87,8 @@ if __name__ == "__main__":
     y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)
     # grid
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, int(1e4), endpoint=True)
-    y0[:setup.Nx] = 0.9 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha
-    # beam electrons => legendre
-    x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
-    for nn in range(setup.Nv_L):
-        xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = 0.1 * np.exp(-2 * ((v_ - 4.5) ** 2)) * np.sqrt(2)
-        v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[setup.Nx * setup.Nv_H + nn * setup.Nx: setup.Nx * setup.Nv_H + (nn + 1) * setup.Nx] = x_component * v_component
+    # initial condition (only initialize Hermite zeroth coefficient)
+    y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha
 
     # start timer
     start_time_cpu = time.process_time()
@@ -118,15 +110,15 @@ if __name__ == "__main__":
 
     # save the runtime
     np.save(
-        "../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+        "../../data/mixed_method_1_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
             setup.Nv_L) +
         "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
         setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
         setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

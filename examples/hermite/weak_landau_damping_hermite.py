@@ -30,7 +30,7 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupHermite(Nx=51,
-                                   Nv=50,
+                                   Nv=1000,
                                    epsilon=1e-2,
                                    alpha_e=np.sqrt(2),
                                    alpha_i=np.sqrt(2 / 1836),
@@ -39,7 +39,7 @@ if __name__ == "__main__":
                                    L=2 * np.pi,
                                    dt=1e-2,
                                    T0=0,
-                                   T=10,
+                                   T=50,
                                    nu=0)
 
     # initial condition: read in result from previous simulation
