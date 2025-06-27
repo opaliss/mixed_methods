@@ -3,7 +3,7 @@
 ions are treated as stationary
 
 Author: Opal Issan (oissan@ucsd.edu)
-Last Update: June 9th, 2025
+Last Update: June 27th, 2025
 """
 import numpy as np
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
@@ -55,6 +55,7 @@ class SimulationSetupMixedMethod1:
         self.nu_L = nu_L
         # directory name
         self.problem_dir = problem_dir
+        self.construct_integrals = construct_integrals
 
         # matrices
         # finite difference derivative matrix
@@ -82,8 +83,10 @@ class SimulationSetupMixedMethod1:
 
         if construct_integrals:
             v_ = np.linspace(v_a, v_b, Nv_int, endpoint=True)
+
             self.LH_int = np.zeros((self.Nv_L, self.Nv_H + 1))
             self.LH_int_complement = np.zeros((self.Nv_L, self.Nv_H + 1))
+
             for mm in range(self.Nv_L):
                 for nn in range(self.Nv_H + 1):
                     self.LH_int_complement[mm, nn] = scipy.integrate.trapezoid(

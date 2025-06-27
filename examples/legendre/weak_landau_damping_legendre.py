@@ -1,7 +1,7 @@
 """Module to run Legendre weak Landau damping testcase
 
 Author: Opal Issan
-Date: June 9th, 2025
+Date: June 26th, 2025
 """
 import sys, os
 
@@ -33,8 +33,9 @@ def rhs(y):
 
 
 if __name__ == "__main__":
+    # setup simulation parameters
     setup = SimulationSetupLegendre(Nx=51,
-                                    Nv_e=50,
+                                    Nv_e=400,
                                     epsilon=1e-2,
                                     v_a=-10,
                                     v_b=10,
@@ -42,7 +43,7 @@ if __name__ == "__main__":
                                     L=2 * np.pi,
                                     dt=1e-2,
                                     T0=0,
-                                    T=10,
+                                    T=50,
                                     nu=0)
 
     # initial condition: read in result from previous simulation

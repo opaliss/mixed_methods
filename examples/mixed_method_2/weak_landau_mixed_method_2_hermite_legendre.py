@@ -70,8 +70,8 @@ if __name__ == "__main__":
                                         Nv_H=25,
                                         Nv_L=25,
                                         epsilon=1e-2,
-                                        v_a=-10,
-                                        v_b=10,
+                                        v_a=-3,
+                                        v_b=3,
                                         alpha=np.sqrt(2),
                                         u=0,
                                         L=2 * np.pi,
@@ -110,15 +110,15 @@ if __name__ == "__main__":
 
     # save the runtime
     np.save(
-        "../../data/mixed_method_1_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+        "../../data/mixed_method_2_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
             setup.Nv_L) +
         "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
         setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
         setup.Nv_L) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
