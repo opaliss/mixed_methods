@@ -66,10 +66,10 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in [10, 40, 160]:
+    for Nv in [40, 160]:
         setup = SimulationSetupMixedMethod1(Nx=101,
-                                            Nv_H=Nv//2,
-                                            Nv_L=Nv//2,
+                                            Nv_H=10,
+                                            Nv_L=Nv,
                                             epsilon=1e-2,
                                             v_a=-6,
                                             v_b=6,
