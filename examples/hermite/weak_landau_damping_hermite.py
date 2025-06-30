@@ -29,50 +29,51 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupHermite(Nx=51,
-                                   Nv=100,
-                                   epsilon=1e-2,
-                                   alpha_e=np.sqrt(2),
-                                   alpha_i=np.sqrt(2 / 1836),
-                                   u_e=0,
-                                   u_i=0,
-                                   L=2 * np.pi,
-                                   dt=1e-2,
-                                   T0=0,
-                                   T=50,
-                                   nu=0)
+    for Nv in [5, 20, 80]:
+        setup = SimulationSetupHermite(Nx=101,
+                                       Nv=Nv,
+                                       epsilon=1e-2,
+                                       alpha_e=0.8,
+                                       alpha_i=np.sqrt(2 / 1836),
+                                       u_e=0,
+                                       u_i=0,
+                                       L=2 * np.pi,
+                                       dt=1e-2,
+                                       T0=0,
+                                       T=45,
+                                       nu=0)
 
-    # initial condition: read in result from previous simulation
-    y0 = np.zeros(setup.Nv * setup.Nx)
-    # first electron 1 species (perturbed)
-    x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha_e
+        # initial condition: read in result from previous simulation
+        y0 = np.zeros(setup.Nv * setup.Nx)
+        # first electron 1 species (perturbed)
+        x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+        y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_ * 2 * np.pi / setup.L)) / setup.alpha_e
 
-    # start timer
-    start_time_cpu = time.process_time()
-    start_time_wall = time.time()
+        # start timer
+        start_time_cpu = time.process_time()
+        start_time_wall = time.time()
 
-    # integrate (implicit midpoint)
-    sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
-                                              right_hand_side=rhs,
-                                              a_tol=1e-9,
-                                              r_tol=1e-9,
-                                              max_iter=100,
-                                              param=setup)
+        # integrate (implicit midpoint)
+        sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
+                                                  right_hand_side=rhs,
+                                                  a_tol=1e-11,
+                                                  r_tol=1e-11,
+                                                  max_iter=100,
+                                                  param=setup)
 
-    end_time_cpu = time.process_time() - start_time_cpu
-    end_time_wall = time.time() - start_time_wall
+        end_time_cpu = time.process_time() - start_time_cpu
+        end_time_wall = time.time() - start_time_wall
 
-    print("runtime cpu = ", end_time_cpu)
-    print("runtime wall = ", end_time_wall)
+        print("runtime cpu = ", end_time_cpu)
+        print("runtime wall = ", end_time_wall)
 
-    # save the runtime
-    np.save("../data/hermite/weak_landau/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+        # save the runtime
+        np.save("../data/hermite/weak_landau/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+                + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
-    # save results
-    np.save("../data/hermite/weak_landau/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
-            + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
+        # save results
+        np.save("../data/hermite/weak_landau/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
+                + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../data/hermite/weak_landau/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+        np.save("../data/hermite/weak_landau/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+                + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

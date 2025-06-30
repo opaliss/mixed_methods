@@ -9,6 +9,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
+from operators.mixed_method_2.mixed_method_2_operators import extra_term_2, extra_term_3
 from operators.legendre.legendre_operators import nonlinear_legendre
 from operators.hermite.hermite_operators import nonlinear_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
@@ -38,7 +39,13 @@ def rhs(y):
                                                         m=setup.m_e,
                                                         alpha=setup.alpha,
                                                         Nv=setup.Nv_H,
-                                                        Nx=setup.Nx)
+                                                        Nx=setup.Nx) \
+                                    + extra_term_2(LH_int_2=setup.LH_int_complement[:, -1],
+                                                   Nv_H=setup.Nv_H,
+                                                   D=setup.D,
+                                                   Nx=setup.Nx,
+                                                   state_legendre=y[setup.Nv_H * setup.Nx:],
+                                                   Nv_L=setup.Nv_L)
 
     dydt_[setup.Nv_H * setup.Nx:] = setup.A_e_L @ y[setup.Nv_H * setup.Nx:] \
                                     + nonlinear_legendre(E=E, psi=y[setup.Nv_H * setup.Nx:],
@@ -61,17 +68,27 @@ def rhs(y):
                                                    D=setup.D,
                                                    E=E,
                                                    Nv_L=setup.Nv_L,
-                                                   Nx=setup.Nx)
+                                                   Nx=setup.Nx) \
+                                    + extra_term_3(LH_int_2=setup.LH_int_complement[:, -1],
+                                                   LH_int_3=setup.LH_int[:, -2],
+                                                   Nv_H=setup.Nv_H,
+                                                   D=setup.D,
+                                                   Nx=setup.Nx,
+                                                   state_legendre=y[setup.Nv_H * setup.Nx:],
+                                                   Nv_L=setup.Nv_L,
+                                                   v_b=setup.v_b,
+                                                   v_a=setup.v_a)
+
     return dydt_
 
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=51,
-                                        Nv_H=25,
-                                        Nv_L=25,
+                                        Nv_H=50,
+                                        Nv_L=50,
                                         epsilon=1e-2,
-                                        v_a=-3,
-                                        v_b=3,
+                                        v_a=-5,
+                                        v_b=5,
                                         alpha=np.sqrt(2),
                                         u=0,
                                         L=2 * np.pi,

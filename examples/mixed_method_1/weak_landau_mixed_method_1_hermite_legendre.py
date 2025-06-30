@@ -66,59 +66,60 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod1(Nx=51,
-                                        Nv_H=25,
-                                        Nv_L=25,
-                                        epsilon=1e-2,
-                                        v_a=-10,
-                                        v_b=10,
-                                        alpha=np.sqrt(2),
-                                        u=0,
-                                        L=2 * np.pi,
-                                        dt=1e-2,
-                                        T0=0,
-                                        T=50,
-                                        nu_L=0,
-                                        nu_H=0,
-                                        gamma=0,
-                                        construct_integrals=True)
+    for Nv in [10, 40, 160]:
+        setup = SimulationSetupMixedMethod1(Nx=101,
+                                            Nv_H=Nv//2,
+                                            Nv_L=Nv//2,
+                                            epsilon=1e-2,
+                                            v_a=-6,
+                                            v_b=6,
+                                            alpha=0.8,
+                                            u=0,
+                                            L=2 * np.pi,
+                                            dt=1e-2,
+                                            T0=0,
+                                            T=50,
+                                            nu_L=0,
+                                            nu_H=0,
+                                            gamma=0,
+                                            construct_integrals=True)
 
-    # initial condition: read in result from previous simulation
-    y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)
-    # grid
-    x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    # initial condition (only initialize Hermite zeroth coefficient)
-    y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha
+        # initial condition: read in result from previous simulation
+        y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)
+        # grid
+        x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+        # initial condition (only initialize Hermite zeroth coefficient)
+        y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha
 
-    # start timer
-    start_time_cpu = time.process_time()
-    start_time_wall = time.time()
+        # start timer
+        start_time_cpu = time.process_time()
+        start_time_wall = time.time()
 
-    # integrate (implicit midpoint)
-    sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
-                                              right_hand_side=rhs,
-                                              a_tol=1e-10,
-                                              r_tol=1e-10,
-                                              max_iter=100,
-                                              param=setup)
+        # integrate (implicit midpoint)
+        sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
+                                                  right_hand_side=rhs,
+                                                  a_tol=1e-11,
+                                                  r_tol=1e-11,
+                                                  max_iter=100,
+                                                  param=setup)
 
-    end_time_cpu = time.process_time() - start_time_cpu
-    end_time_wall = time.time() - start_time_wall
+        end_time_cpu = time.process_time() - start_time_cpu
+        end_time_wall = time.time() - start_time_wall
 
-    print("runtime cpu = ", end_time_cpu)
-    print("runtime wall = ", end_time_wall)
+        print("runtime cpu = ", end_time_cpu)
+        print("runtime wall = ", end_time_wall)
 
-    # save the runtime
-    np.save(
-        "../../data/mixed_method_1_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+        # save the runtime
+        np.save(
+            "../../data/mixed_method_1_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+                setup.Nv_L) +
+            "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+
+        # save results
+        np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
             setup.Nv_L) +
-        "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+                "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    # save results
-    np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-        setup.Nv_L) +
-            "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
-
-    np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-        setup.Nv_L) +
-            "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+        np.save("../../data/mixed_method_1_hermite_legendre/weak_landau/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+            setup.Nv_L) +
+                "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
