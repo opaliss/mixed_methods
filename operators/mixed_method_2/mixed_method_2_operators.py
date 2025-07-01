@@ -6,10 +6,10 @@ Last Update: June 9th, 2025
 import numpy as np
 
 
-def extra_term_2(LH_int_2, Nv_H, D, Nx, state_legendre, Nv_L):
+def extra_term_2(I_int_complement, Nv_H, D, Nx, state_legendre, Nv_L):
     """
 
-    :param LH_int_2:
+    :param I_int_complement:
     :param state_legendre:
     :param Nx:
     :param Nv_H:
@@ -17,18 +17,33 @@ def extra_term_2(LH_int_2, Nv_H, D, Nx, state_legendre, Nv_L):
     :param D:
     :return:
     """
-    res = np.zeros(Nx * Nv_H)
-    res[(Nv_H - 1) * Nx:] = - np.sqrt(Nv_H / 2) * D @ \
-                                      ((LH_int_2[:, None] * state_legendre.reshape(Nv_L, Nx)).sum(axis=0))
+    sol_ = np.zeros(Nx * Nv_H)
+    sol_[(Nv_H - 1) * Nx:] = - np.sqrt(Nv_H / 2) * summation_term(I_int_complement=I_int_complement,
+                                                                  D=D, state_legendre=state_legendre, Nx=Nx, Nv_L=Nv_L)
+    return sol_
 
-    return res
 
-
-def extra_term_3(LH_int_2, LH_int_3, Nv_H, Nv_L, Nx, v_b, v_a, D, state_legendre):
+def summation_term(I_int_complement, D, state_legendre, Nx, Nv_L):
     """
 
-    :param LH_int_2:
-    :param LH_int_3:
+    :param I_int_complement:
+    :param D:
+    :param state_legendre:
+    :param Nx:
+    :param Nv_L:
+    :return:
+    """
+    sol_ = np.zeros(Nx)
+    for ii in range(Nv_L):
+        sol_ += I_int_complement[ii] * D @ state_legendre[ii * Nx: (ii + 1) * Nx]
+    return sol_
+
+
+def extra_term_3(I_int_complement, J_int, Nv_H, Nv_L, Nx, v_b, v_a, D, state_legendre):
+    """
+
+    :param I_int_complement:
+    :param J_int:
     :param Nv_H:
     :param Nv_L:
     :param Nx:
@@ -38,5 +53,8 @@ def extra_term_3(LH_int_2, LH_int_3, Nv_H, Nv_L, Nx, v_b, v_a, D, state_legendre
     :param state_legendre:
     :return:
     """
-    return 1 / (v_b - v_a) * np.sqrt(Nv_H / 2) \
-           * np.kron(LH_int_3, D @ ((LH_int_2[:, None] * state_legendre.reshape(Nv_L, Nx)).sum(axis=0)))
+    sol_ = np.zeros(Nx * Nv_L)
+    sum_term = summation_term(I_int_complement=I_int_complement, D=D, state_legendre=state_legendre, Nx=Nx, Nv_L=Nv_L)
+    for ii in range(Nv_L):
+        sol_[ii * Nx: (ii + 1) * Nx] += 1 / (v_b - v_a) * np.sqrt(Nv_H / 2) * J_int[ii] * sum_term
+    return sol_
