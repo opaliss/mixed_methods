@@ -21,8 +21,6 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
 
     Parameters
     ----------
-    :param bulk_hermite:
-    :param bump_hermite:
     :param param: object of SimulationSetup with all the simulation setup parameters
     :param max_iter: maximum iterations of nonlinear solver, default is 100
     :param a_tol: absolute tolerance nonlinear solver, default is 1e-15
@@ -50,14 +48,14 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
             # updated u (electron 1) parameter
             u_e_curr = updated_u(u_prev=param.u_e[-1],
                                  alpha_prev=param.alpha_e[-1],
-                                 C00=y_sol[:, tt - 1][0],
-                                 C10=y_sol[:, tt - 1][param.Nx])
+                                 C00=np.mean(y_sol[:, tt - 1][:param.Nx]),
+                                 C10=np.mean(y_sol[:, tt - 1][param.Nx:2*param.Nx]))
 
             # updated alpha (electron 1) parameter
             alpha_e_curr = updated_alpha(alpha_prev=param.alpha_e[-1],
-                                         C20=y_sol[:, tt - 1][2 * param.Nx],
-                                         C10=y_sol[:, tt - 1][param.Nx],
-                                         C00=y_sol[:, tt - 1][0])
+                                         C20=np.mean(y_sol[:, tt - 1][2*param.Nx:3*param.Nx]),
+                                         C10=np.mean(y_sol[:, tt - 1][param.Nx:2*param.Nx]),
+                                         C00=np.mean(y_sol[:, tt - 1][:param.Nx]))
 
             # electron 1 check mark
             if check_if_update_needed(u_s_curr=u_e_curr, u_s=param.u_e[-1], u_s_tol=param.u_tol,

@@ -63,12 +63,12 @@ if __name__ == "__main__":
                                             dt=1e-2,
                                             T0=0,
                                             T=40,
-                                            nu_e1=10,
-                                            nu_e2=10,
+                                            nu_e1=20,
+                                            nu_e2=20,
                                             n0_e1=0.9,
                                             n0_e2=0.1,
                                             alpha_tol=1e-1,
-                                            u_tol=1e-2)
+                                            u_tol=1e-1)
 
     # initial condition: read in result from previous simulation
     # ions (unperturbed + static)

@@ -33,8 +33,8 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
 
     Parameters
     ----------
-    :param bulk_hermite:
-    :param bump_hermite:
+    :param bulk_hermite_adapt: boolean, default is True
+    :param bump_hermite_adapt: boolean, default is True
     :param param: object of SimulationSetup with all the simulation setup parameters
     :param max_iter: maximum iterations of nonlinear solver, default is 100
     :param a_tol: absolute tolerance nonlinear solver, default is 1e-15
@@ -62,25 +62,26 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
             # updated u (electron 1) parameter
             u_e1_curr = updated_u(u_prev=param.u_e1[-1],
                                   alpha_prev=param.alpha_e1[-1],
-                                  C00=y_sol[:, tt - 1][0],
-                                  C10=y_sol[:, tt - 1][param.Nx])
+                                  C00=np.mean(y_sol[:, tt - 1][:param.Nx]),
+                                  C10=np.mean(y_sol[:, tt - 1][param.Nx:2*param.Nx]))
 
             # updated alpha (electron 1) parameter
             alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
-                                          C20=y_sol[:, tt - 1][2 * param.Nx],
-                                          C10=y_sol[:, tt - 1][param.Nx],
-                                          C00=y_sol[:, tt - 1][0])
+                                          C20=np.mean(y_sol[:, tt - 1][2*param.Nx: 3*param.Nx]),
+                                          C10=np.mean(y_sol[:, tt - 1][param.Nx: 2*param.Nx]),
+                                          C00=np.mean(y_sol[:, tt - 1][:param.Nx]))
 
             # update u (electron 2) parameter
-            u_e2_curr = updated_u(u_prev=param.u_e2[-1], alpha_prev=param.alpha_e2[-1],
-                                  C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx],
-                                  C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx])
+            u_e2_curr = updated_u(u_prev=param.u_e2[-1],
+                                  alpha_prev=param.alpha_e2[-1],
+                                  C00=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx]),
+                                  C10=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2*param.Nx]))
 
             # update alpha (electron 2) parameter
             alpha_e2_curr = updated_alpha(alpha_prev=param.alpha_e2[-1],
-                                          C20=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + 2 * param.Nx],
-                                          C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx],
-                                          C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx])
+                                          C20=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx + 2*param.Nx: param.Nv_e1 * param.Nx + 3*param.Nx]),
+                                          C10=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2*param.Nx]),
+                                          C00=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx]))
 
             if bulk_hermite_adapt:
                 # electron 1 check mark
