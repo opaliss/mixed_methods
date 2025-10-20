@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.legendre.legendre_operators import nonlinear_legendre, charge_density_legendre, xi_legendre
 from operators.legendre.setup_legendre import SimulationSetupLegendre
-from operators.implicit_midpoint import implicit_midpoint_solver
+from operators.implicit_midpoint_adaptive_single_stream import implicit_midpoint_solver_adaptive_single_stream
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
@@ -19,7 +19,7 @@ import scipy
 def rhs(y):
     # charge density computed
     rho = charge_density_legendre(q_e=setup.q_e, q_i=setup.q_i, C0_e=y[:setup.Nx],
-                                  C0_i=np.ones(setup.Nx)/(setup.v_b - setup.v_a),
+                                  C0_i=np.ones(setup.Nx) / (setup.v_b - setup.v_a),
                                   v_a=setup.v_a, v_b=setup.v_b)
 
     # electric field computed (poisson solver)
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         x_component = (1 + setup.epsilon * np.cos(x_)) / np.sqrt(np.pi) / (setup.v_b - setup.v_a) / 0.8
         for nn in range(setup.Nv_e):
             xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-            v_component = scipy.integrate.trapezoid(xi * np.exp(-((v_/0.8) ** 2)), x=v_, dx=np.abs(v_[1] - v_[0]))
+            v_component = scipy.integrate.trapezoid(xi * np.exp(-((v_ / 0.8) ** 2)), x=v_, dx=np.abs(v_[1] - v_[0]))
             y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
 
         # start timer
@@ -63,12 +63,13 @@ if __name__ == "__main__":
         start_time_wall = time.time()
 
         # integrate (implicit midpoint)
-        sol_midpoint_u = implicit_midpoint_solver(y_0=y0,
-                                                  right_hand_side=rhs,
-                                                  a_tol=1e-11,
-                                                  r_tol=1e-11,
-                                                  max_iter=100,
-                                                  param=setup)
+        sol_midpoint_u = implicit_midpoint_solver_adaptive_single_stream(y_0=y0,
+                                                                         right_hand_side=rhs,
+                                                                         a_tol=1e-11,
+                                                                         r_tol=1e-11,
+                                                                         max_iter=100,
+                                                                         param=setup,
+                                                                         adaptive=False)
 
         end_time_cpu = time.process_time() - start_time_cpu
         end_time_wall = time.time() - start_time_wall

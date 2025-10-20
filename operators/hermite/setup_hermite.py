@@ -10,11 +10,8 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupHermite:
-    def __init__(self, Nx, Nv,
-                 epsilon, alpha_e, alpha_i,
-                 u_e, u_i, L, dt, T0, T, nu,
-                 m_e=1, m_i=1836, q_e=-1, q_i=1,
-                 ions=False, problem_dir=None):
+    def __init__(self, Nx, Nv, epsilon, alpha_e, alpha_i, u_e, u_i, L, dt, T0, T, nu,
+                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # set up configuration parameters
         # spatial resolution
         self.Nx = Nx
@@ -24,12 +21,13 @@ class SimulationSetupHermite:
         self.N = self.Nx * self.Nv
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
+        # in the adaptive setting alpha and u are vectors and are tracked in time.
         # velocity scaling parameter (mean thermal velocity)
-        self.alpha_e = alpha_e
-        self.alpha_i = alpha_i
+        self.alpha_e = [alpha_e]
+        self.alpha_i = [alpha_i]
         # velocity shifting parameter (mean fluid velocity)
-        self.u_e = u_e
-        self.u_i = u_i
+        self.u_e = [u_e]
+        self.u_i = [u_i]
         # x grid is from 0 to L
         self.L = L
         self.dx = self.L / self.Nx
@@ -58,10 +56,30 @@ class SimulationSetupHermite:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # matrix of coefficients (advection)
-        A_diag = A2(D=self.D, Nv=self.Nv)
-        A_off = A1_hermite(D=self.D, Nv=self.Nv)
-        A_col = A3(Nx=self.Nx, Nv=self.Nv)
+        self.A_diag = A2(D=self.D, Nv=self.Nv)
+        self.A_off = A1_hermite(D=self.D, Nv=self.Nv)
+        self.A_col = A3(Nx=self.Nx, Nv=self.Nv)
 
-        self.A_e = self.alpha_e * A_off + self.u_e * A_diag + self.nu * A_col
-        if ions:
-            self.A_i = self.alpha_i * A_off + self.u_i * A_diag + self.nu * A_col
+    def add_alpha_e(self, alpha_e_curr):
+        self.alpha_e.append(alpha_e_curr)
+
+    def add_alpha_i(self, alpha_i_curr):
+        self.alpha_i.append(alpha_i_curr)
+
+    def add_u_e(self, u_e_curr):
+        self.u_e.append(u_e_curr)
+
+    def add_u_i(self, u_i_curr):
+        self.u_i.append(u_i_curr)
+
+    def replace_alpha_e(self, alpha_e_curr):
+        self.alpha_e[-1] = alpha_e_curr
+
+    def replace_alpha_i(self, alpha_i_curr):
+        self.alpha_i[-1] = alpha_i_curr
+
+    def replace_u_e(self, u_e_curr):
+        self.u_e[-1] = u_e_curr
+
+    def replace_u_i(self, u_i_curr):
+        self.u_i[-1] = u_i_curr

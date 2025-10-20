@@ -14,7 +14,7 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
-    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha, u, gamma, L, dt, T0, T, nu_H, nu_L,
+    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
                  m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
@@ -29,8 +29,8 @@ class SimulationSetupMixedMethod0:
         self.v_a = v_a
         self.v_b = v_b
         # hermite scaling and shifting parameters
-        self.alpha = alpha
-        self.u = u
+        self.alpha_e1 = [alpha_e1]
+        self.u_e1 = [u_e1]
         # penalty magnitude
         self.gamma = gamma
         # x grid is from 0 to L
@@ -62,9 +62,9 @@ class SimulationSetupMixedMethod0:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # Hermite operator
-        self.A_e_H = self.alpha * A1_hermite(D=self.D, Nv=self.Nv_H) \
-                     + self.u * A2(D=self.D, Nv=self.Nv_H) \
-                     + self.nu_H * A3(Nx=self.Nx, Nv=self.Nv_H)
+        self.A_eH_diag = A2(D=self.D, Nv=self.Nv_H)
+        self.A_eH_off = A1_hermite(D=self.D, Nv=self.Nv_H)
+        self.A_eH_col = A3(Nx=self.Nx, Nv=self.Nv_H)
 
         # Legendre operators
         self.A_e_L = A1_legendre(D=self.D, Nv=self.Nv_L, v_a=v_a, v_b=v_b) \
@@ -79,3 +79,15 @@ class SimulationSetupMixedMethod0:
         for nn in range(self.Nv_L):
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
+
+    def add_alpha_e1(self, alpha_e1_curr):
+        self.alpha_e1.append(alpha_e1_curr)
+
+    def add_u_e1(self, u_e1_curr):
+        self.u_e1.append(u_e1_curr)
+
+    def replace_alpha_e1(self, alpha_e1_curr):
+        self.alpha_e1[-1] = alpha_e1_curr
+
+    def replace_u_e1(self, u_e1_curr):
+        self.u_e1[-1] = u_e1_curr
