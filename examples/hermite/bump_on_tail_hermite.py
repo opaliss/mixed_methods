@@ -62,9 +62,9 @@ if __name__ == "__main__":
                                             L=20 * np.pi / 3,
                                             dt=1e-2,
                                             T0=0,
-                                            T=20,
-                                            nu_e1=20,
-                                            nu_e2=20,
+                                            T=40,
+                                            nu_e1=10,
+                                            nu_e2=10,
                                             n0_e1=0.9,
                                             n0_e2=0.1,
                                             alpha_tol=1e-1,
@@ -87,14 +87,14 @@ if __name__ == "__main__":
     start_time_wall = time.time()
 
     # integrate (implicit midpoint)
-    sol_midpoint_u = implicit_midpoint_solver_adaptive_two_stream(y_0=y0,
-                                                                  right_hand_side=rhs,
-                                                                  r_tol=1e-10,
-                                                                  a_tol=1e-10,
-                                                                  max_iter=100,
-                                                                  bump_hermite_adapt=True,
-                                                                  bulk_hermite_adapt=True,
-                                                                  param=setup)
+    sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_two_stream(y_0=y0,
+                                                                         right_hand_side=rhs,
+                                                                         r_tol=1e-10,
+                                                                         a_tol=1e-10,
+                                                                         max_iter=100,
+                                                                         bump_hermite_adapt=True,
+                                                                         bulk_hermite_adapt=True,
+                                                                         param=setup)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall
@@ -103,31 +103,31 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save runtime
-    np.save("../data/hermite/bump_on_tail_adaptive/sol_runtime_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
+    np.save("../../data/hermite/bump_on_tail_adaptive/sol_runtime_Nve1_" + str(setup.Nv_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
             + "_" + str(setup.T) + ".npy", np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../data/hermite/bump_on_tail_adaptive/sol_u_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
+    np.save("../../data/hermite/bump_on_tail_adaptive/sol_u_Nve1_" + str(setup.Nv_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", sol_midpoint_u)
 
-    np.save("../data/hermite/bump_on_tail_adaptive/sol_t_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/hermite/bump_on_tail_adaptive/sol_t_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
 
-    np.save("../data/hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../data/hermite/bump_on_tail_adaptive/alpha_e2_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/hermite/bump_on_tail_adaptive/alpha_e2_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e2)
 
-    np.save("../data/hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
 
-    np.save("../data/hermite/bump_on_tail_adaptive/u_e2_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/hermite/bump_on_tail_adaptive/u_e2_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e2)
