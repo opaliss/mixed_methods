@@ -1,7 +1,7 @@
-"""Module to run mixed method #1 nonlinear landau testcase
+"""Module to run mixed method #1 nonlinear/strong Landau damping testcase
 
 Author: Opal Issan
-Date: June 11th, 2025
+Date: July 2nd, 2025
 """
 import sys, os
 
@@ -52,7 +52,7 @@ def rhs(y):
                                                          v_b=setup.v_b,
                                                          xi_v_a=setup.xi_v_a,
                                                          xi_v_b=setup.xi_v_b) \
-                                    + extra_term_1(LH_int_1=setup.LH_int[:, -1],
+                                    + extra_term_1(J_int=setup.J_int[-1, :],
                                                    v_b=setup.v_b,
                                                    v_a=setup.v_a,
                                                    C_hermite_last=y[(setup.Nv_H - 1) * setup.Nx: setup.Nv_H * setup.Nx],
@@ -67,18 +67,18 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_H=100,
-                                        Nv_L=100,
-                                        epsilon=1e-1,
-                                        v_a=-10,
-                                        v_b=10,
+                                        Nv_H=101,
+                                        Nv_L=201,
+                                        epsilon=0.3,
+                                        v_a=-6,
+                                        v_b=6,
                                         alpha=np.sqrt(2),
                                         u=0,
                                         L=2 * np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=20,
-                                        nu_L=0,
+                                        T=40,
+                                        nu_L=1,
                                         nu_H=0,
                                         gamma=0.5,
                                         construct_integrals=True)
@@ -109,8 +109,7 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save(
-        "../../data/mixed_method_1_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
             setup.Nv_L) +
         "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 

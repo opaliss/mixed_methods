@@ -84,23 +84,24 @@ class SimulationSetupMixedMethod1:
         if construct_integrals:
             v_ = np.linspace(v_a, v_b, Nv_int, endpoint=True)
 
-            self.J_int = np.zeros((self.Nv_L, self.Nv_H + 1))
-            self.I_int_complement = np.zeros((self.Nv_L, self.Nv_H + 1))
+            self.J_int = np.zeros((self.Nv_H + 1, self.Nv_L))
+            self.I_int_complement = np.zeros((self.Nv_H + 1, self.Nv_L))
 
             for mm in range(self.Nv_L):
                 for nn in range(self.Nv_H + 1):
                     if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
-                        self.J_int[mm, nn] = 0
-                        self.I_int_complement[mm, nn] = 0
+                        self.J_int[nn, mm] = 0
+                        self.I_int_complement[nn, mm] = 0
                     elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
-                        self.J_int[mm, nn] = 0
-                        self.I_int_complement[mm, nn] = 0
+                        self.J_int[nn, mm] = 0
+                        self.I_int_complement[nn, mm] = 0
                     else:
-                        self.J_int[mm, nn] = scipy.integrate.trapezoid(
+                        self.J_int[nn, mm] = scipy.integrate.trapezoid(
                                 xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
                                 * psi_hermite(n=nn, alpha_s=self.alpha, u_s=self.u, v=v_),
                                 x=v_, dx=np.abs(v_[1] - v_[0]))
-                        self.I_int_complement[mm, nn] = scipy.integrate.trapezoid(
+
+                        self.I_int_complement[nn, mm] = scipy.integrate.trapezoid(
                             xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
                             * psi_hermite_complement(n=nn, alpha_s=self.alpha, u_s=self.u, v=v_),
                             x=v_, dx=np.abs(v_[1] - v_[0]))

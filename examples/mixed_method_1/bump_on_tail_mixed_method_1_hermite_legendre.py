@@ -1,16 +1,16 @@
 """Module to run mixed method #1 bump on tail testcase
 
 Author: Opal Issan
-Date: June 11th, 2025
+Date: July 1st, 2025
 """
 import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
-from operators.mixed_method_1.mixed_method_1_operators import extra_term_1, closure_term
+from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.hermite.hermite_operators import nonlinear_hermite, psi_hermite_complement
+from operators.hermite.hermite_operators import nonlinear_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
@@ -53,7 +53,7 @@ def rhs(y):
                                                          v_b=setup.v_b,
                                                          xi_v_a=setup.xi_v_a,
                                                          xi_v_b=setup.xi_v_b) \
-                                    + extra_term_1(LH_int_1=setup.LH_int[:, -1],
+                                    + extra_term_1(J_int=setup.J_int[-1, :],
                                                    v_b=setup.v_b,
                                                    v_a=setup.v_a,
                                                    C_hermite_last=y[(setup.Nv_H - 1) * setup.Nx: setup.Nv_H * setup.Nx],
@@ -69,7 +69,7 @@ def rhs(y):
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
                                         Nv_H=100,
-                                        Nv_L=100,
+                                        Nv_L=400,
                                         epsilon=1e-2,
                                         v_a=-10,
                                         v_b=10,
@@ -79,7 +79,7 @@ if __name__ == "__main__":
                                         dt=1e-2,
                                         T0=0,
                                         T=30,
-                                        nu_L=0,
+                                        nu_L=10,
                                         nu_H=0,
                                         gamma=0.5,
                                         construct_integrals=True)
@@ -89,6 +89,7 @@ if __name__ == "__main__":
     # grid
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, int(1e4), endpoint=True)
+    # initial condition
     y0[:setup.Nx] = 0.9 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha
     # beam electrons => legendre
     x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
@@ -117,16 +118,12 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save(
-        "../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-            setup.Nv_L) +
-        "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+    np.save("../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+            setup.Nv_L) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
     np.save("../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-        setup.Nv_L) +
-            "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
+        setup.Nv_L) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
     np.save("../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-        setup.Nv_L) +
-            "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+        setup.Nv_L) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

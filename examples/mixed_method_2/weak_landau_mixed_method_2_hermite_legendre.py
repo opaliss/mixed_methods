@@ -40,7 +40,7 @@ def rhs(y):
                                                         alpha=setup.alpha,
                                                         Nv=setup.Nv_H,
                                                         Nx=setup.Nx) \
-                                    + extra_term_2(I_int_complement=setup.I_int_complement[:, -1],
+                                    + extra_term_2(I_int_complement=setup.I_int_complement[-1, :],
                                                    Nv_H=setup.Nv_H,
                                                    D=setup.D,
                                                    Nx=setup.Nx,
@@ -59,7 +59,7 @@ def rhs(y):
                                                          v_b=setup.v_b,
                                                          xi_v_a=setup.xi_v_a,
                                                          xi_v_b=setup.xi_v_b) \
-                                    + extra_term_1(J_int=setup.J_int[:, -1],
+                                    + extra_term_1(J_int=setup.J_int[-1, :],
                                                    v_b=setup.v_b,
                                                    v_a=setup.v_a,
                                                    C_hermite_last=y[(setup.Nv_H - 1) * setup.Nx: setup.Nv_H * setup.Nx],
@@ -69,8 +69,8 @@ def rhs(y):
                                                    E=E,
                                                    Nv_L=setup.Nv_L,
                                                    Nx=setup.Nx) \
-                                    + extra_term_3(I_int_complement=setup.I_int_complement[:, -1],
-                                                   J_int=setup.J_int[:, -2],
+                                    + extra_term_3(I_int_complement=setup.I_int_complement[-1, :],
+                                                   J_int=setup.J_int[-2, :],
                                                    Nv_H=setup.Nv_H,
                                                    D=setup.D,
                                                    Nx=setup.Nx,
@@ -88,8 +88,8 @@ if __name__ == "__main__":
                                             Nv_H=Nv,
                                             Nv_L=Nv,
                                             epsilon=1e-2,
-                                            v_a=-6,
-                                            v_b=6,
+                                            v_a=-2,
+                                            v_b=2,
                                             alpha=0.8,
                                             u=0,
                                             L=2 * np.pi,
@@ -127,10 +127,8 @@ if __name__ == "__main__":
         print("runtime wall = ", end_time_wall)
 
         # save the runtime
-        np.save(
-            "../../data/mixed_method_2_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-                setup.Nv_L) +
-            "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+        np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
+                setup.Nv_L) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
         # save results
         np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(

@@ -35,8 +35,8 @@ def summation_term(I_int_complement, D, state_legendre, Nx, Nv_L):
     """
     sol_ = np.zeros(Nx)
     for ii in range(Nv_L):
-        sol_ += I_int_complement[ii] * D @ state_legendre[ii * Nx: (ii + 1) * Nx]
-    return sol_
+        sol_ += I_int_complement[ii] * state_legendre[ii * Nx: (ii + 1) * Nx]
+    return  D @ sol_
 
 
 def extra_term_3(I_int_complement, J_int, Nv_H, Nv_L, Nx, v_b, v_a, D, state_legendre):
