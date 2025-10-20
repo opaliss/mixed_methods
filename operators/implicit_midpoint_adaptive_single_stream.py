@@ -39,7 +39,7 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
 
     """
     # initialize the solution matrix
-    y_sol = np.zeros((len(y_0), len(param.t_vec)), dtype="complex128")
+    y_sol = np.zeros((len(y_0), len(param.t_vec)))
     y_sol[:, 0] = y_0
 
     # for-loop each time-step
@@ -51,12 +51,12 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
             u_e_curr = updated_u(u_prev=param.u_e[-1],
                                  alpha_prev=param.alpha_e[-1],
                                  C00=y_sol[:, tt - 1][0],
-                                 C10=y_sol[:, tt - 1][param.Nx_total])
+                                 C10=y_sol[:, tt - 1][param.Nx])
 
             # updated alpha (electron 1) parameter
             alpha_e_curr = updated_alpha(alpha_prev=param.alpha_e[-1],
-                                         C20=y_sol[:, tt - 1][2 * param.Nx_total],
-                                         C10=y_sol[:, tt - 1][param.Nx_total],
+                                         C20=y_sol[:, tt - 1][2 * param.Nx],
+                                         C10=y_sol[:, tt - 1][param.Nx],
                                          C00=y_sol[:, tt - 1][0])
 
             # electron 1 check mark
@@ -68,7 +68,7 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
                 print("alpha_e= ", alpha_e_curr)
                 # get Hermite projection matrix
                 P, case = get_projection_matrix(u_s_curr=u_e_curr, u_s=param.u_e[-1], alpha_s_curr=alpha_e_curr,
-                                                alpha_s=param.alpha_e[-1], Nx_total=param.Nx_total, Nv=param.Nv,
+                                                alpha_s=param.alpha_e[-1], Nx_total=param.Nx, Nv=param.Nv,
                                                 alpha_s_tol=param.alpha_tol, u_s_tol=param.u_tol)
                 if case == 1:
                     print("tolerance met for u and alpha")
@@ -78,18 +78,18 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
 
                 elif case == 2:
                     print("tolerance met for u")
-                    param.replace_u_e(u_e1_curr=u_e_curr)
+                    param.replace_u_e(u_e_curr=u_e_curr)
 
                 elif case == 3:
                     print("tolerance met for alpha")
                     param.replace_alpha_e(alpha_e_curr=alpha_e_curr)
 
                 # project the previous timestamp results
-                y_sol[:, tt - 1][:param.Nv * param.Nx_total] = P @ y_sol[:, tt - 1][:param.Nv * param.Nx_total]
+                y_sol[:, tt - 1][:param.Nv * param.Nx] = P @ y_sol[:, tt - 1][:param.Nv * param.Nx]
 
             # update parameters electron 1
-            param.add_alpha_e(alpha_e1_curr=param.alpha_e[-1])
-            param.add_u_e(u_e1_curr=param.u_e[-1])
+            param.add_alpha_e(alpha_e_curr=param.alpha_e[-1])
+            param.add_u_e(u_e_curr=param.u_e[-1])
 
         y_sol[:, tt] = scipy.optimize.newton_krylov(F=lambda y: implicit_nonlinear_equation(y_new=y,
                                                                                             y_old=y_sol[:, tt - 1],

@@ -51,7 +51,7 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
 
     """
     # initialize the solution matrix
-    y_sol = np.zeros((len(y_0), len(param.t_vec)), dtype="complex128")
+    y_sol = np.zeros((len(y_0), len(param.t_vec)))
     y_sol[:, 0] = y_0
 
     # for-loop each time-step
@@ -63,24 +63,24 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
             u_e1_curr = updated_u(u_prev=param.u_e1[-1],
                                   alpha_prev=param.alpha_e1[-1],
                                   C00=y_sol[:, tt - 1][0],
-                                  C10=y_sol[:, tt - 1][param.Nx_total])
+                                  C10=y_sol[:, tt - 1][param.Nx])
 
             # updated alpha (electron 1) parameter
             alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
-                                          C20=y_sol[:, tt - 1][2 * param.Nx_total],
-                                          C10=y_sol[:, tt - 1][param.Nx_total],
+                                          C20=y_sol[:, tt - 1][2 * param.Nx],
+                                          C10=y_sol[:, tt - 1][param.Nx],
                                           C00=y_sol[:, tt - 1][0])
 
             # update u (electron 2) parameter
             u_e2_curr = updated_u(u_prev=param.u_e2[-1], alpha_prev=param.alpha_e2[-1],
-                                  C00=y_sol[:, tt - 1][param.Nv * param.Nx_total],
-                                  C10=y_sol[:, tt - 1][param.Nv * param.Nx_total + param.Nx_total])
+                                  C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx],
+                                  C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx])
 
             # update alpha (electron 2) parameter
             alpha_e2_curr = updated_alpha(alpha_prev=param.alpha_e2[-1],
-                                          C20=y_sol[:, tt - 1][param.Nv * param.Nx_total + 2 * param.Nx_total],
-                                          C10=y_sol[:, tt - 1][param.Nv * param.Nx_total + param.Nx_total],
-                                          C00=y_sol[:, tt - 1][param.Nv * param.Nx_total])
+                                          C20=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + 2 * param.Nx],
+                                          C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx],
+                                          C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx])
 
             if bulk_hermite_adapt:
                 # electron 1 check mark
@@ -92,7 +92,7 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                     print("alpha_e1 = ", alpha_e1_curr)
                     # get Hermite projection matrix
                     P, case = get_projection_matrix(u_s_curr=u_e1_curr, u_s=param.u_e1[-1], alpha_s_curr=alpha_e1_curr,
-                                                    alpha_s=param.alpha_e1[-1], Nx_total=param.Nx_total, Nv=param.Nv,
+                                                    alpha_s=param.alpha_e1[-1], Nx_total=param.Nx, Nv=param.Nv_e1,
                                                     alpha_s_tol=param.alpha_tol, u_s_tol=param.u_tol)
                     if case == 1:
                         print("(e1) tolerance met for u and alpha")
@@ -109,7 +109,7 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
 
                     # project the previous timestamp results
-                    y_sol[:, tt - 1][:param.Nv * param.Nx_total] = P @ y_sol[:, tt - 1][:param.Nv * param.Nx_total]
+                    y_sol[:, tt - 1][:param.Nv_e1 * param.Nx] = P @ y_sol[:, tt - 1][:param.Nv_e1 * param.Nx]
 
                 # update parameters electron 1
                 param.add_alpha_e1(alpha_e1_curr=param.alpha_e1[-1])
@@ -125,7 +125,7 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                     print("alpha_e2 = ", alpha_e2_curr)
                     # get Hermite projection matrix
                     P, case = get_projection_matrix(u_s_curr=u_e2_curr, u_s=param.u_e2[-1], alpha_s_curr=alpha_e2_curr,
-                                                    alpha_s=param.alpha_e2[-1], Nx_total=param.Nx_total, Nv=param.Nv,
+                                                    alpha_s=param.alpha_e2[-1], Nx_total=param.Nx, Nv=param.Nv_e2,
                                                     alpha_s_tol=param.alpha_tol, u_s_tol=param.u_tol)
                     if case == 1:
                         print("(e2) tolerance met for u and alpha")
@@ -142,8 +142,8 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                         param.replace_alpha_e2(alpha_e2_curr=alpha_e2_curr)
 
                     # project the previous timestamp results
-                    y_sol[:, tt - 1][param.Nv * param.Nx_total: 2 * param.Nv * param.Nx_total] = \
-                        P @ y_sol[:, tt - 1][param.Nv * param.Nx_total: 2 * param.Nv * param.Nx_total]
+                    y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx] = \
+                        P @ y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx]
 
                 # update parameters electron 2
                 param.add_alpha_e2(alpha_e2_curr=param.alpha_e2[-1])

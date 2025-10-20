@@ -11,7 +11,7 @@ from operators.finite_difference import ddx_central
 
 class SimulationSetupHermite:
     def __init__(self, Nx, Nv, epsilon, alpha_e, alpha_i, u_e, u_i, L, dt, T0, T, nu,
-                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
+                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, u_tol=np.inf, alpha_tol=np.inf):
         # set up configuration parameters
         # spatial resolution
         self.Nx = Nx
@@ -19,6 +19,9 @@ class SimulationSetupHermite:
         self.Nv = Nv
         # total number of DOF for each species
         self.N = self.Nx * self.Nv
+        # parameters tolerances
+        self.u_tol = u_tol
+        self.alpha_tol = alpha_tol
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
         # in the adaptive setting alpha and u are vectors and are tracked in time.

@@ -10,9 +10,8 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupTwoStreamHermite:
-    def __init__(self, Nx,  Nv_e1, Nv_e2, epsilon, alpha_e1, alpha_e2, alpha_i,
-                 u_e1, u_e2, u_i, L, dt, T0, T,
-                 nu_e1, nu_e2,  n0_e1, n0_e2, FD_order=2,
+    def __init__(self, Nx,  Nv_e1, Nv_e2, epsilon, alpha_e1, alpha_e2, alpha_i, u_e1, u_e2, u_i, L,
+                 dt, T0, T, u_tol, alpha_tol, nu_e1, nu_e2,  n0_e1, n0_e2, FD_order=2,
                  periodic=True, nu_i=0, m_e1=1, m_e2=1, m_i=1836, q_e1=-1, q_e2=-1, q_i=1, Nv_i=0):
         # set up configuration parameters
         # resolution in space
@@ -21,6 +20,9 @@ class SimulationSetupTwoStreamHermite:
         self.Nv_e1 = Nv_e1
         self.Nv_e2 = Nv_e2
         self.Nv_i = Nv_i
+        # parameters tolerances
+        self.u_tol = u_tol
+        self.alpha_tol = alpha_tol
         # total DOF for each species
         # self.N = self.Nv * self.Nx
         # epsilon displacement in initial electron distribution

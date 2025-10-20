@@ -62,23 +62,25 @@ if __name__ == "__main__":
                                             L=20 * np.pi / 3,
                                             dt=1e-2,
                                             T0=0,
-                                            T=40,
+                                            T=20,
                                             nu_e1=20,
                                             nu_e2=20,
                                             n0_e1=0.9,
-                                            n0_e2=0.1)
+                                            n0_e2=0.1,
+                                            alpha_tol=1e-1,
+                                            u_tol=1e-2)
 
     # initial condition: read in result from previous simulation
     # ions (unperturbed + static)
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
     # second electron species (unperturbed)
     y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * \
                                                                     (1 + setup.epsilon * np.cos(
                                                                         0.3 * x_)) \
-                                                                    / setup.alpha_e2
+                                                                    / setup.alpha_e2[-1]
 
     # start timer
     start_time_cpu = time.process_time()
@@ -101,31 +103,31 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save runtime
-    np.save("../data/hermite/bump_on_tail/sol_runtime_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/sol_runtime_Nve1_" + str(setup.Nv_e1)
             + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
             + "_" + str(setup.T) + ".npy", np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../data/hermite/bump_on_tail/sol_u_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/sol_u_Nve1_" + str(setup.Nv_e1)
             + "_Nve2" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", sol_midpoint_u)
 
-    np.save("../data/hermite/bump_on_tail/sol_t_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/sol_t_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
 
-    np.save("../data/hermite/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../data/hermite/bump_on_tail/alpha_e2_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/alpha_e2_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e2)
 
-    np.save("../data/hermite/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
 
-    np.save("../data/hermite/bump_on_tail/u_e2_Nve1_" + str(setup.Nv_e1)
+    np.save("../data/hermite/bump_on_tail_adaptive/u_e2_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e2)

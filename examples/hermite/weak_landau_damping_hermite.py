@@ -45,7 +45,9 @@ if __name__ == "__main__":
                                        dt=1e-2,
                                        T0=0,
                                        T=50,
-                                       nu=0)
+                                       nu=0,
+                                       u_tol=1e-3,
+                                       alpha_tol=1e-3)
 
         # initial condition: read in result from previous simulation
         y0 = np.zeros(setup.Nv * setup.Nx)
@@ -72,18 +74,18 @@ if __name__ == "__main__":
         print("runtime wall = ", end_time_wall)
 
         # save the runtime
-        np.save("../data/hermite/weak_landau/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/hermite/weak_landau_adaptive/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
         # save results
-        np.save("../data/hermite/weak_landau/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
+        np.save("../data/hermite/weak_landau_adaptive/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
                 + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-        np.save("../data/hermite/weak_landau/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/hermite/weak_landau_adaptive/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
-        np.save("../data/hermite/weak_landau/alpha_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/hermite/weak_landau_adaptive/alpha_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), setup.alpha_e)
 
-        np.save("../data/hermite/weak_landau/u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/hermite/weak_landau_adaptive/u_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), setup.u_e)
