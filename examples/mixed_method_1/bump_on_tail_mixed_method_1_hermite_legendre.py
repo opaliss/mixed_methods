@@ -122,7 +122,8 @@ if __name__ == "__main__":
                                                                          param=setup,
                                                                          bump_hermite_adapt=False,
                                                                          bulk_hermite_adapt=True,
-                                                                         adaptive=True)
+                                                                         adaptive=True,
+                                                                         MM1=True)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall

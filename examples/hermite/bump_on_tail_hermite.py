@@ -63,6 +63,7 @@ if __name__ == "__main__":
                                             dt=1e-2,
                                             T0=0,
                                             T=40,
+                                            k0=1,
                                             nu_e1=4,
                                             nu_e2=4,
                                             n0_e1=0.9,
@@ -76,7 +77,7 @@ if __name__ == "__main__":
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     # first electron species ==> "bulk" (perturbed)
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / setup.alpha_e1[-1]
     # second electron species ==> "bump" (perturbed)
     y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 / setup.alpha_e2[-1]
 
@@ -92,6 +93,7 @@ if __name__ == "__main__":
                                                                          max_iter=100,
                                                                          bump_hermite_adapt=True,
                                                                          bulk_hermite_adapt=True,
+                                                                         adaptive=True,
                                                                          param=setup)
 
     end_time_cpu = time.process_time() - start_time_cpu

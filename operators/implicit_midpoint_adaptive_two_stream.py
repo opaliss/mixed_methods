@@ -21,7 +21,7 @@ def implicit_nonlinear_equation(y_new, y_old, dt, right_hand_side):
 
 
 def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_tol=1e-8, a_tol=1e-15, max_iter=100,
-                                                 bump_hermite_adapt=True, bulk_hermite_adapt=True,
+                                                 bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False,
                                                  adaptive=True):
     """Solve the system
 
@@ -103,6 +103,8 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                 # update parameters electron 1
                 param.add_alpha_e1(alpha_e1_curr=param.alpha_e1[-1])
                 param.add_u_e1(u_e1_curr=param.u_e1[-1])
+                if param.MM1:
+                    param.update_IJ()
 
             if bump_hermite_adapt:
                 # update u (electron 2) parameter
@@ -154,6 +156,7 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                 # update parameters electron 2
                 param.add_alpha_e2(alpha_e2_curr=param.alpha_e2[-1])
                 param.add_u_e2(u_e2_curr=param.u_e2[-1])
+
 
         y_sol[:, tt] = scipy.optimize.newton_krylov(F=lambda y: implicit_nonlinear_equation(y_new=y,
                                                                                             y_old=y_sol[:, tt - 1],

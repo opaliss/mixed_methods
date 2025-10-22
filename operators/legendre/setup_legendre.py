@@ -12,7 +12,7 @@ from operators.finite_difference import ddx_central
 
 class SimulationSetupLegendre:
     def __init__(self, Nx, Nv_e,  epsilon, v_a, v_b, gamma, L, dt, T0, T, nu,
-                 alpha_e1, alpha_e2, u_e1, u_e2, n0_e1, n0_e2, Nv_int=1000,
+                 alpha_e1, alpha_e2, u_e1, u_e2, n0_e1, n0_e2, k0, Nv_int=1000,
                  m_e=1, m_i=1836, q_e=-1, q_i=1, ions=False, Nv_i=0, problem_dir=None):
         # velocity grid
         # set up configuration parameters
@@ -58,6 +58,8 @@ class SimulationSetupLegendre:
         self.nu = nu
         # directory name
         self.problem_dir = problem_dir
+        # initial perturbed wavenumber
+        self.k0 = k0
 
         # matrices
         # finite difference derivative matrix

@@ -75,8 +75,9 @@ if __name__ == "__main__":
                                         dt=1e-2,
                                         T0=0,
                                         T=40,
+                                        k0=1,
                                         nu_L=1,
-                                        nu_H=5,
+                                        nu_H=4,
                                         gamma=0.5,
                                         u_tol=1e-1,
                                         alpha_tol=1e-1,
@@ -85,15 +86,15 @@ if __name__ == "__main__":
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
-    # bulk electrons => hermite
+    # bulk electrons => hermite (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
-    # beam electrons => legendre
-    v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
-    x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / setup.alpha_e1[-1]
+    # beam electrons => legendre (unperturbed)
+    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
+    x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-2 * ((v_ - setup.u_e2) ** 2)) / setup.alpha_e2
+        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
                     nn + 1) * setup.Nx] = x_component * v_component
@@ -120,10 +121,8 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save(
-        "../../data/mixed_method_0_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-            setup.Nv_e2) +
-        "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+    np.save("../../data/mixed_method_0_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+            setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
     np.save("../../data/mixed_method_0_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(

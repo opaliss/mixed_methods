@@ -43,6 +43,7 @@ if __name__ == "__main__":
                                     u_e2=4.5,
                                     n0_e1=0.9,
                                     n0_e2=0.1,
+                                    k0=1,
                                     L=20 * np.pi / 3,
                                     dt=1e-2,
                                     Nv_int=int(1e4),
@@ -56,13 +57,15 @@ if __name__ == "__main__":
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
-    x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+    x_component_bulk = (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+    x_component_beam = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e1 * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1**2)) / setup.alpha_e1 \
-               + setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
-        v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
+        exp_bulk = setup.n0_e1 * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1**2)) / setup.alpha_e1
+        exp_beam = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
+        v_component_bulk = scipy.integrate.trapezoid(xi * exp_bulk, x=v_, dx=np.abs(v_[1] - v_[0]))
+        v_component_beam = scipy.integrate.trapezoid(xi * exp_beam, x=v_, dx=np.abs(v_[1] - v_[0]))
+        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component_bulk * v_component_bulk + x_component_beam * v_component_beam
 
     # start timer
     start_time_cpu = time.process_time()

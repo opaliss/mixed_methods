@@ -65,6 +65,8 @@ class SimulationSetupMixedMethod1:
         # parameters tolerances
         self.u_tol = u_tol
         self.alpha_tol = alpha_tol
+        # velocity resolution for projection and integral estimation
+        self.Nv_int = Nv_int
 
         # matrices
         # finite difference derivative matrix
@@ -91,29 +93,9 @@ class SimulationSetupMixedMethod1:
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
 
         if construct_integrals:
-            v_ = np.linspace(v_a, v_b, Nv_int, endpoint=True)
-
             self.J_int = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
             self.I_int_complement = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
-
-            for mm in range(self.Nv_e2):
-                for nn in range(self.Nv_e1 + 1):
-                    if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
-                        self.J_int[nn, mm] = 0
-                        self.I_int_complement[nn, mm] = 0
-                    elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
-                        self.J_int[nn, mm] = 0
-                        self.I_int_complement[nn, mm] = 0
-                    else:
-                        self.J_int[nn, mm] = scipy.integrate.trapezoid(
-                                xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
-                                * psi_hermite(n=nn, alpha_s=self.alpha_e1, u_s=self.u_e1, v=v_),
-                                x=v_, dx=np.abs(v_[1] - v_[0]))
-
-                        self.I_int_complement[nn, mm] = scipy.integrate.trapezoid(
-                            xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
-                            * psi_hermite_complement(n=nn, alpha_s=self.alpha_e1, u_s=self.u_e1, v=v_),
-                            x=v_, dx=np.abs(v_[1] - v_[0]))
+            self.update_IJ()
 
     def add_alpha_e1(self, alpha_e1_curr):
         self.alpha_e1.append(alpha_e1_curr)
@@ -126,3 +108,24 @@ class SimulationSetupMixedMethod1:
 
     def replace_u_e1(self, u_e1_curr):
         self.u_e1[-1] = u_e1_curr
+
+    def update_IJ(self):
+        v_ = np.linspace(self.v_a, self.v_b, self.Nv_int, endpoint=True)
+        for mm in range(self.Nv_e2):
+            for nn in range(self.Nv_e1 + 1):
+                if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
+                    self.J_int[nn, mm] = 0
+                    self.I_int_complement[nn, mm] = 0
+                elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
+                    self.J_int[nn, mm] = 0
+                    self.I_int_complement[nn, mm] = 0
+                else:
+                    self.J_int[nn, mm] = scipy.integrate.trapezoid(
+                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                        * psi_hermite(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
+                        x=v_, dx=np.abs(v_[1] - v_[0]))
+
+                    self.I_int_complement[nn, mm] = scipy.integrate.trapezoid(
+                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                        * psi_hermite_complement(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
+                        x=v_, dx=np.abs(v_[1] - v_[0]))
