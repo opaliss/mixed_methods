@@ -14,15 +14,15 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
-    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2,
+    def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2,
                  u_tol, alpha_tol, m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
         # spatial resolution
         self.Nx = Nx
         # velocity resolution
-        self.Nv_H = Nv_H
-        self.Nv_L = Nv_L
+        self.Nv_e1 = Nv_e1
+        self.Nv_e2 = Nv_e2
         # average density coefficient
         self.n0_e1 = n0_e1
         self.n0_e2 = n0_e2
@@ -69,21 +69,21 @@ class SimulationSetupMixedMethod0:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # Hermite operator
-        self.A_eH_diag = A2(D=self.D, Nv=self.Nv_H)
-        self.A_eH_off = A1_hermite(D=self.D, Nv=self.Nv_H)
-        self.A_eH_col = A3(Nx=self.Nx, Nv=self.Nv_H)
+        self.A_eH_diag = A2(D=self.D, Nv=self.Nv_e1)
+        self.A_eH_off = A1_hermite(D=self.D, Nv=self.Nv_e1)
+        self.A_eH_col = A3(Nx=self.Nx, Nv=self.Nv_e1)
 
         # Legendre operators
-        self.A_e_L = A1_legendre(D=self.D, Nv=self.Nv_L, v_a=v_a, v_b=v_b) \
-                     + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_L) \
-                     + self.nu_L * A3(Nx=self.Nx, Nv=self.Nv_L)
+        self.A_e_L = A1_legendre(D=self.D, Nv=self.Nv_e2, v_a=v_a, v_b=v_b) \
+                     + sigma_bar(v_a=self.v_a, v_b=self.v_b) * A2(D=self.D, Nv=self.Nv_e2) \
+                     + self.nu_L * A3(Nx=self.Nx, Nv=self.Nv_e2)
 
-        self.B_e_L = B_legendre(Nv=self.Nv_L, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
+        self.B_e_L = B_legendre(Nv=self.Nv_e2, Nx=self.Nx, v_a=self.v_a, v_b=self.v_b)
 
         # xi functions
-        self.xi_v_a = np.zeros(self.Nv_L)
-        self.xi_v_b = np.zeros(self.Nv_L)
-        for nn in range(self.Nv_L):
+        self.xi_v_a = np.zeros(self.Nv_e2)
+        self.xi_v_b = np.zeros(self.Nv_e2)
+        for nn in range(self.Nv_e2):
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
 
