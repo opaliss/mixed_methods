@@ -63,8 +63,8 @@ if __name__ == "__main__":
                                             dt=1e-2,
                                             T0=0,
                                             T=40,
-                                            nu_e1=5,
-                                            nu_e2=5,
+                                            nu_e1=3,
+                                            nu_e2=3,
                                             n0_e1=0.9,
                                             n0_e2=0.1,
                                             alpha_tol=1e-1,
@@ -75,8 +75,9 @@ if __name__ == "__main__":
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+    # first electron species ==> "bulk" (perturbed)
     y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
-    # second electron species (unperturbed)
+    # second electron species ==> "bump" (perturbed)
     y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * \
                                                                     (1 + setup.epsilon * np.cos(
                                                                         0.3 * x_)) \
