@@ -117,6 +117,7 @@ if __name__ == "__main__":
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
 
+    # save time varying alpha and u
     np.save("../../data/hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
