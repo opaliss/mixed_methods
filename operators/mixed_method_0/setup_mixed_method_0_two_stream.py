@@ -14,7 +14,7 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
-    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
+    def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2,
                  u_tol, alpha_tol, m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
@@ -23,6 +23,9 @@ class SimulationSetupMixedMethod0:
         # velocity resolution
         self.Nv_H = Nv_H
         self.Nv_L = Nv_L
+        # average density coefficient
+        self.n0_e1 = n0_e1
+        self.n0_e2 = n0_e2
         # parameters tolerances
         self.u_tol = u_tol
         self.alpha_tol = alpha_tol
@@ -34,6 +37,7 @@ class SimulationSetupMixedMethod0:
         # hermite scaling and shifting parameters
         self.alpha_e1 = [alpha_e1]
         self.u_e1 = [u_e1]
+        self.u_e2 = u_e2
         # penalty magnitude
         self.gamma = gamma
         # x grid is from 0 to L

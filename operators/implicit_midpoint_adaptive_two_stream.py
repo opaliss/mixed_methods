@@ -59,31 +59,19 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
         # print out the current time stamp
         print("\n time = ", param.t_vec[tt])
         if adaptive:
-            # updated u (electron 1) parameter
-            u_e1_curr = updated_u(u_prev=param.u_e1[-1],
-                                  alpha_prev=param.alpha_e1[-1],
-                                  C00=np.mean(y_sol[:, tt - 1][:param.Nx]),
-                                  C10=np.mean(y_sol[:, tt - 1][param.Nx:2*param.Nx]))
-
-            # updated alpha (electron 1) parameter
-            alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
-                                          C20=np.mean(y_sol[:, tt - 1][2*param.Nx: 3*param.Nx]),
-                                          C10=np.mean(y_sol[:, tt - 1][param.Nx: 2*param.Nx]),
-                                          C00=np.mean(y_sol[:, tt - 1][:param.Nx]))
-
-            # update u (electron 2) parameter
-            u_e2_curr = updated_u(u_prev=param.u_e2[-1],
-                                  alpha_prev=param.alpha_e2[-1],
-                                  C00=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx]),
-                                  C10=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2*param.Nx]))
-
-            # update alpha (electron 2) parameter
-            alpha_e2_curr = updated_alpha(alpha_prev=param.alpha_e2[-1],
-                                          C20=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx + 2*param.Nx: param.Nv_e1 * param.Nx + 3*param.Nx]),
-                                          C10=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2*param.Nx]),
-                                          C00=np.mean(y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx]))
-
             if bulk_hermite_adapt:
+                # updated u (electron 1) parameter
+                u_e1_curr = updated_u(u_prev=param.u_e1[-1],
+                                      alpha_prev=param.alpha_e1[-1],
+                                      C00=np.mean(y_sol[:, tt - 1][:param.Nx]),
+                                      C10=np.mean(y_sol[:, tt - 1][param.Nx:2 * param.Nx]))
+
+                # updated alpha (electron 1) parameter
+                alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
+                                              C20=np.mean(y_sol[:, tt - 1][2 * param.Nx: 3 * param.Nx]),
+                                              C10=np.mean(y_sol[:, tt - 1][param.Nx: 2 * param.Nx]),
+                                              C00=np.mean(y_sol[:, tt - 1][:param.Nx]))
+
                 # electron 1 check mark
                 if check_if_update_needed(u_s_curr=u_e1_curr, u_s=param.u_e1[-1], u_s_tol=param.u_tol,
                                           alpha_s_curr=alpha_e1_curr, alpha_s=param.alpha_e1[-1],
@@ -117,6 +105,23 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                 param.add_u_e1(u_e1_curr=param.u_e1[-1])
 
             if bump_hermite_adapt:
+                # update u (electron 2) parameter
+                u_e2_curr = updated_u(u_prev=param.u_e2[-1],
+                                      alpha_prev=param.alpha_e2[-1],
+                                      C00=np.mean(
+                                          y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx]),
+                                      C10=np.mean(y_sol[:, tt - 1][
+                                                  param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx]))
+
+                # update alpha (electron 2) parameter
+                alpha_e2_curr = updated_alpha(alpha_prev=param.alpha_e2[-1],
+                                              C20=np.mean(y_sol[:, tt - 1][
+                                                          param.Nv_e1 * param.Nx + 2 * param.Nx: param.Nv_e1 * param.Nx + 3 * param.Nx]),
+                                              C10=np.mean(y_sol[:, tt - 1][
+                                                          param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx]),
+                                              C00=np.mean(y_sol[:, tt - 1][
+                                                          param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx]))
+
                 # electron 2 check mark
                 if check_if_update_needed(u_s_curr=u_e2_curr, u_s=param.u_e2[-1], u_s_tol=param.u_tol,
                                           alpha_s_curr=alpha_e2_curr, alpha_s=param.alpha_e2[-1],

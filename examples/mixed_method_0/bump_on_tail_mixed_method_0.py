@@ -1,7 +1,7 @@
 """Module to run mixed method #0 (static) bump on tail testcase
 
 Author: Opal Issan
-Date: June 9th, 2025
+Last updates: Oct 22nd, 2025
 """
 import sys, os
 
@@ -67,27 +67,30 @@ if __name__ == "__main__":
                                         v_b=10,
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
+                                        u_e2=4.5,
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
                                         T=40,
                                         nu_L=1,
-                                        nu_H=20,
+                                        nu_H=5,
                                         gamma=0.5,
                                         u_tol=1e-1,
-                                        alpha_tol=1e-1)
+                                        alpha_tol=1e-1,
+                                        n0_e1=0.9,
+                                        n0_e2=0.1)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)
     # bulk electrons => hermite
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    y0[:setup.Nx] = 0.9 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
     # beam electrons => legendre
     v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
     x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_L):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = 0.1 * np.exp(-2 * ((v_ - 4.5) ** 2)) * np.sqrt(2)
+        exp_ = setup.n0_e2 * np.exp(-2 * ((v_ - setup.u_e2) ** 2)) * np.sqrt(2)
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[
         setup.Nx * setup.Nv_H + nn * setup.Nx: setup.Nx * setup.Nv_H + (nn + 1) * setup.Nx] = x_component * v_component
