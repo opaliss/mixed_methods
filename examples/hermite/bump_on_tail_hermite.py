@@ -78,10 +78,7 @@ if __name__ == "__main__":
     # first electron species ==> "bulk" (perturbed)
     y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1[-1]
     # second electron species ==> "bump" (perturbed)
-    y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 * \
-                                                                    (1 + setup.epsilon * np.cos(
-                                                                        0.3 * x_)) \
-                                                                    / setup.alpha_e2[-1]
+    y0[setup.Nv_e1 * setup.Nx: setup.Nv_e1 * setup.Nx + setup.Nx] = setup.n0_e2 / setup.alpha_e2[-1]
 
     # start timer
     start_time_cpu = time.process_time()

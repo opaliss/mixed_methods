@@ -20,10 +20,10 @@ import numpy as np
 
 def rhs(y):
     # charge density computed
-    rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha,
+    rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha_e1,
                                                    v_a=setup.v_a, v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[setup.Nv_H * setup.Nx: (setup.Nv_H + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -31,49 +31,49 @@ def rhs(y):
     dydt_ = np.zeros(len(y))
 
     # evolving bulk hermite
-    dydt_[:setup.Nv_H * setup.Nx] = setup.A_e_H @ y[:setup.Nv_H * setup.Nx] \
-                                    + nonlinear_hermite(E=E,
-                                                        psi=y[:setup.Nv_H * setup.Nx],
-                                                        q=setup.q_e,
-                                                        m=setup.m_e,
-                                                        alpha=setup.alpha,
-                                                        Nv=setup.Nv_H,
-                                                        Nx=setup.Nx)
-
-    dydt_[setup.Nv_H * setup.Nx:] = setup.A_e_L @ y[setup.Nv_H * setup.Nx:] \
-                                    + nonlinear_legendre(E=E, psi=y[setup.Nv_H * setup.Nx:],
-                                                         Nv=setup.Nv_L,
-                                                         Nx=setup.Nx,
-                                                         B_mat=setup.B_e_L,
+    dydt_[:setup.Nv_e1 * setup.Nx] = setup.A_e_H @ y[:setup.Nv_e1 * setup.Nx] \
+                                     + nonlinear_hermite(E=E,
+                                                         psi=y[:setup.Nv_e1 * setup.Nx],
                                                          q=setup.q_e,
                                                          m=setup.m_e,
-                                                         gamma=setup.gamma,
-                                                         v_a=setup.v_a,
-                                                         v_b=setup.v_b,
-                                                         xi_v_a=setup.xi_v_a,
-                                                         xi_v_b=setup.xi_v_b) \
-                                    + extra_term_1(J_int=setup.J_int[-1, :],
-                                                   v_b=setup.v_b,
-                                                   v_a=setup.v_a,
-                                                   C_hermite_last=y[(setup.Nv_H - 1) * setup.Nx: setup.Nv_H * setup.Nx],
-                                                   alpha=setup.alpha,
-                                                   Nv_H=setup.Nv_H,
-                                                   D=setup.D,
-                                                   E=E,
-                                                   Nv_L=setup.Nv_L,
-                                                   Nx=setup.Nx)
+                                                         alpha=setup.alpha_e1,
+                                                         Nv=setup.Nv_e1,
+                                                         Nx=setup.Nx)
+
+    dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
+                                     + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
+                                                          Nv=setup.Nv_e2,
+                                                          Nx=setup.Nx,
+                                                          B_mat=setup.B_e_L,
+                                                          q=setup.q_e,
+                                                          m=setup.m_e,
+                                                          gamma=setup.gamma,
+                                                          v_a=setup.v_a,
+                                                          v_b=setup.v_b,
+                                                          xi_v_a=setup.xi_v_a,
+                                                          xi_v_b=setup.xi_v_b) \
+                                     + extra_term_1(J_int=setup.J_int[-1, :],
+                                                    v_b=setup.v_b,
+                                                    v_a=setup.v_a,
+                                                    C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
+                                                    alpha=setup.alpha_e1,
+                                                    Nv_H=setup.Nv_e1,
+                                                    D=setup.D,
+                                                    E=E,
+                                                    Nv_L=setup.Nv_e2,
+                                                    Nx=setup.Nx)
     return dydt_
 
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_H=101,
-                                        Nv_L=201,
+                                        Nv_e1=101,
+                                        Nv_e2=201,
                                         epsilon=0.3,
                                         v_a=-6,
                                         v_b=6,
-                                        alpha=np.sqrt(2),
-                                        u=0,
+                                        alpha_e1=np.sqrt(2),
+                                        u_e1=0,
                                         L=2 * np.pi,
                                         dt=1e-2,
                                         T0=0,
@@ -84,11 +84,11 @@ if __name__ == "__main__":
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
-    y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)
+    y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # grid
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     # initial condition (only initialize Hermite zeroth coefficient)
-    y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha
+    y0[:setup.Nx] = (1 + setup.epsilon * np.cos(x_)) / setup.alpha_e1
 
     # start timer
     start_time_cpu = time.process_time()
@@ -109,15 +109,15 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-            setup.Nv_L) +
+    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+            setup.Nv_e2) +
         "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_u_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-        setup.Nv_L) +
+    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+        setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_t_NvH_" + str(setup.Nv_H) + "_NvL_" + str(
-        setup.Nv_L) +
+    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+        setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

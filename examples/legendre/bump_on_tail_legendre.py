@@ -37,8 +37,15 @@ if __name__ == "__main__":
                                     epsilon=1e-2,
                                     v_a=-10,
                                     v_b=10,
+                                    alpha_e1=np.sqrt(2),
+                                    alpha_e2=1/np.sqrt(2),
+                                    u_e1=0,
+                                    u_e2=4.5,
+                                    n0_e1=0.9,
+                                    n0_e2=0.1,
                                     L=20 * np.pi / 3,
                                     dt=1e-2,
+                                    Nv_int=int(1e4),
                                     T0=0,
                                     T=40,
                                     nu=1,
@@ -48,11 +55,12 @@ if __name__ == "__main__":
     y0 = np.zeros(setup.Nv_e * setup.Nx)
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, 1000, endpoint=True)
+    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
     x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = 0.9 * np.exp(-0.5 * (v_ ** 2)) / np.sqrt(2) + 0.1 * np.exp(-2 * ((v_ - 4.5) ** 2)) * np.sqrt(2)
+        exp_ = setup.n0_e1 * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1**2)) / setup.alpha_e1 \
+               + setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
 

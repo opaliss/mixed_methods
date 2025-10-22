@@ -70,6 +70,7 @@ if __name__ == "__main__":
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
                                         u_e2=4.5,
+                                        alpha_e2=1/np.sqrt(2),
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
@@ -92,10 +93,9 @@ if __name__ == "__main__":
     x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-2 * ((v_ - setup.u_e2) ** 2)) * np.sqrt(2)
+        exp_ = setup.n0_e2 * np.exp(-2 * ((v_ - setup.u_e2) ** 2)) / setup.alpha_e2
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[
-        setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
+        y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
                     nn + 1) * setup.Nx] = x_component * v_component
 
     # start timer
@@ -135,10 +135,10 @@ if __name__ == "__main__":
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u
-    np.save("../../data/hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/mixed_method_0_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/mixed_method_0_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
