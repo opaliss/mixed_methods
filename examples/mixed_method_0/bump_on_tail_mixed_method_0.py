@@ -73,7 +73,9 @@ if __name__ == "__main__":
                                         T=40,
                                         nu_L=1,
                                         nu_H=20,
-                                        gamma=0.5)
+                                        gamma=0.5,
+                                        u_tol=1e-1,
+                                        alpha_tol=1e-1)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_H + setup.Nv_L) * setup.Nx)

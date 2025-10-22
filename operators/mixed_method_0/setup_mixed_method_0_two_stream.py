@@ -15,7 +15,7 @@ from operators.finite_difference import ddx_central
 
 class SimulationSetupMixedMethod0:
     def __init__(self, Nx, Nv_H, Nv_L, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
-                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
+                 u_tol, alpha_tol, m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
         # spatial resolution
@@ -23,6 +23,9 @@ class SimulationSetupMixedMethod0:
         # velocity resolution
         self.Nv_H = Nv_H
         self.Nv_L = Nv_L
+        # parameters tolerances
+        self.u_tol = u_tol
+        self.alpha_tol = alpha_tol
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
         # velocity boundaries

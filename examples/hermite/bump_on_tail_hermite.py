@@ -1,7 +1,7 @@
 """Module to run the bump-on-tail instability Hermite testcase
 
-Author: Opal Issan
-Date: June 9th, 2025
+Author: Opal Issan (oissan@ucsd.edu)
+Last modified: Oct 22nd, 2025
 """
 import sys, os
 
@@ -63,8 +63,8 @@ if __name__ == "__main__":
                                             dt=1e-2,
                                             T0=0,
                                             T=40,
-                                            nu_e1=20,
-                                            nu_e2=20,
+                                            nu_e1=5,
+                                            nu_e2=5,
                                             n0_e1=0.9,
                                             n0_e2=0.1,
                                             alpha_tol=1e-1,
