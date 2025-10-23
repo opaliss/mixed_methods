@@ -7,7 +7,7 @@ Last Update: June 9th, 2025
 """
 import numpy as np
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
-from operators.aw_hermite.aw_hermite_operators import A1_hermite, psi_hermite, psi_hermite_complement
+from operators.aw_hermite.aw_hermite_operators import A1_hermite, aw_psi_hermite, aw_psi_hermite_complement
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 import scipy
@@ -124,10 +124,10 @@ class SimulationSetupMixedMethod2:
                 else:
                     self.J_int[nn, mm] = scipy.integrate.trapezoid(
                         xi_legendre(n=mm, v=self.v_, v_a=self.v_a, v_b=self.v_b)
-                        * psi_hermite(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=self.v_),
+                        * aw_psi_hermite(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=self.v_),
                         x=self.v_, dx=np.abs(self.v_[1] - self.v_[0]))
 
                     self.I_int_complement[nn, mm] = scipy.integrate.trapezoid(
                         xi_legendre(n=mm, v=self.v_, v_a=self.v_a, v_b=self.v_b)
-                        * psi_hermite_complement(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=self.v_),
+                        * aw_psi_hermite_complement(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=self.v_),
                         x=self.v_, dx=np.abs(self.v_[1] - self.v_[0]))

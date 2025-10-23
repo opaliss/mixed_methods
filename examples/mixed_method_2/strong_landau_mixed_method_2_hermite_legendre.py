@@ -1,4 +1,4 @@
-"""Module to run mixed method #2 weak landau testcase
+"""Module to run mixed method #2 strong landau testcase
 
 Author: Opal Issan
 Date: Oct 23rd, 2025
@@ -21,11 +21,12 @@ import numpy as np
 
 def rhs(y):
     # charge density computed
-    rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha_e1[-1],
-                                                   v_a=setup.v_a, v_b=setup.v_b,
+    rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e,
+                                                   alpha_e=setup.alpha_e1[-1],
+                                                   v_a=setup.v_a,
+                                                   v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[
-                                                                 setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -65,8 +66,7 @@ def rhs(y):
                                      + extra_term_1(J_int=setup.J_int[-1, :],
                                                     v_b=setup.v_b,
                                                     v_a=setup.v_a,
-                                                    C_hermite_last=y[(
-                                                                                 setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
+                                                    C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
                                                     alpha=setup.alpha_e1[-1],
                                                     Nv_H=setup.Nv_e1,
                                                     D=setup.D,
@@ -140,25 +140,25 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_runtime_NvH_" + str(
+    np.save("../../data/mixed_method_2_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(
         setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
             np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_2_hermite_legendre/strong_landau/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_2_hermite_legendre/strong_landau/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u (for the bulk Hermite)
-    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/mixed_method_2_hermite_legendre/strong_landau/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/mixed_method_2_hermite_legendre/weak_landau/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/mixed_method_2_hermite_legendre/strong_landau/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)

@@ -7,7 +7,7 @@ import numpy as np
 import scipy
 
 
-def psi_hermite(n, alpha_s, u_s, v):
+def aw_psi_hermite(n, alpha_s, u_s, v):
     """AW Hermite basis function (iterative approach)
 
     :param alpha_s: float, velocity scaling parameter
@@ -33,7 +33,7 @@ def psi_hermite(n, alpha_s, u_s, v):
     return psi[n, :]
 
 
-def psi_hermite_complement(n, alpha_s, u_s, v):
+def aw_psi_hermite_complement(n, alpha_s, u_s, v):
     """AW Hermite basis function (iterative approach) complement
 
     :param alpha_s: float, velocity scaling parameter
