@@ -21,7 +21,7 @@ def implicit_nonlinear_equation(y_new, y_old, dt, right_hand_side):
 
 
 def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_tol=1e-8, a_tol=1e-15, max_iter=100,
-                                                 bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False,
+                                                 bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False, MM2=False,
                                                  adaptive=True):
     """Solve the system
 
@@ -42,6 +42,8 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
     :param y_0: initial condition
     :param adaptive: boolean
     :param right_hand_side: function of the right-hand-side, i.e. dy/dt = rhs(y, t)
+    :param MM1: boolean if mixed method #1, default is False
+    :param MM2: boolean if mixed method #2, default is False
 
     Returns
     -------
@@ -77,8 +79,10 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                                           alpha_s_curr=alpha_e1_curr, alpha_s=param.alpha_e1[-1],
                                           alpha_s_tol=param.alpha_tol):
                     print("updating u or alpha (electron 1)")
-                    print("ue1 = ", u_e1_curr)
-                    print("alpha_e1 = ", alpha_e1_curr)
+                    print("[new] ue1 = ", u_e1_curr)
+                    print("[new] alpha_e1 = ", alpha_e1_curr)
+                    print("[curr] ue1 = ", param.u_e1[-1])
+                    print("[curr] alpha_e1 = ", param.alpha_e1[-1])
                     # get Hermite projection matrix
                     P, case = get_projection_matrix(u_s_curr=u_e1_curr, u_s=param.u_e1[-1], alpha_s_curr=alpha_e1_curr,
                                                     alpha_s=param.alpha_e1[-1], Nx_total=param.Nx, Nv=param.Nv_e1,
@@ -88,19 +92,19 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                         # update parameters
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
                         param.replace_u_e1(u_e1_curr=u_e1_curr)
-                        if MM1:
+                        if MM1 or MM2:
                             param.update_IJ()
 
                     elif case == 2:
                         print("(e1) tolerance met for u")
                         param.replace_u_e1(u_e1_curr=u_e1_curr)
-                        if MM1:
+                        if MM1 or MM2:
                             param.update_IJ()
 
                     elif case == 3:
                         print("(e1) tolerance met for alpha")
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
-                        if MM1:
+                        if MM1 or MM2:
                             param.update_IJ()
 
                     # project the previous timestamp results

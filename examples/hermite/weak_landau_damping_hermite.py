@@ -7,8 +7,8 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.hermite.hermite_operators import nonlinear_hermite, charge_density_hermite
-from operators.hermite.setup_hermite import SimulationSetupHermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite, charge_density_hermite
+from operators.aw_hermite.setup_aw_hermite import SimulationSetupHermite
 from operators.implicit_midpoint_adaptive_single_stream import implicit_midpoint_solver_adaptive_single_stream
 from operators.poisson_solver import gmres_solver
 import time
@@ -74,18 +74,18 @@ if __name__ == "__main__":
         print("runtime wall = ", end_time_wall)
 
         # save the runtime
-        np.save("../data/hermite/weak_landau_adaptive/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/aw_hermite/weak_landau_adaptive/sol_runtime_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
         # save results
-        np.save("../data/hermite/weak_landau_adaptive/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
+        np.save("../data/aw_hermite/weak_landau_adaptive/sol_u_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx) + "_"
                 + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-        np.save("../data/hermite/weak_landau_adaptive/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/aw_hermite/weak_landau_adaptive/sol_t_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
-        np.save("../data/hermite/weak_landau_adaptive/alpha_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/aw_hermite/weak_landau_adaptive/alpha_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), setup.alpha_e)
 
-        np.save("../data/hermite/weak_landau_adaptive/u_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
+        np.save("../data/aw_hermite/weak_landau_adaptive/u_e_Nv_" + str(setup.Nv) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T), setup.u_e)

@@ -14,7 +14,7 @@ def psi_hermite(n, alpha_s, u_s, v):
     :param u_s, float, velocity shifting parameter
     :param v: float or array, the velocity coordinate on a grid
     :param n: int, order of polynomial
-    :return: float or 1d array, AW hermite polynomial of degree n evaluated at xi
+    :return: float or 1d array, AW aw_hermite polynomial of degree n evaluated at xi
     """
     # scaled velocity coordinate
     xi = (v - u_s) / alpha_s
@@ -40,13 +40,13 @@ def psi_hermite_complement(n, alpha_s, u_s, v):
     :param u_s, float, velocity shifting parameter
     :param v: float or array, the velocity coordinate on a grid
     :param n: int, order of polynomial
-    :return: float or 1d array, AW hermite polynomial of degree n evaluated at xi
+    :return: float or 1d array, AW aw_hermite polynomial of degree n evaluated at xi
     """
     # scaled velocity coordinate
     xi = (v - u_s) / alpha_s
     # iteratively compute psi_{n}(xi)
     if n == 0:
-        return 1
+        return np.ones(len(xi))
     if n == 1:
         return (2 * xi) / np.sqrt(2)
     else:
@@ -101,8 +101,8 @@ def charge_density_hermite(q_e, q_i, alpha_e, alpha_i, C0_e, C0_i):
 
     :param q_e: float, charge of electrons
     :param q_i: float, charge of ions
-    :param alpha_e: float, hermite scaling parameter or thermal velocity of electrons
-    :param alpha_i: float, hermite scaling parameter or thermal velocity of ions
+    :param alpha_e: float, aw_hermite scaling parameter or thermal velocity of electrons
+    :param alpha_i: float, aw_hermite scaling parameter or thermal velocity of ions
     :param C0_e: 1d array, density of electrons
     :param C0_i: 1d array, density of ions
     :return: change density rho(x, t=t*)
@@ -185,9 +185,9 @@ def charge_density_two_stream_hermite(q_e1, q_e2, q_i, alpha_e1, alpha_e2, alpha
     :param q_e1: float, charge of electrons species 1
     :param q_e2: float, charge of electrons species 2
     :param q_i: float, charge of ions
-    :param alpha_e1: float, hermite scaling parameter or thermal velocity of electrons species 1
-    :param alpha_e2: float, hermite scaling parameter or thermal velocity of electrons species 2
-    :param alpha_i: float, hermite scaling parameter or thermal velocity of ions
+    :param alpha_e1: float, aw_hermite scaling parameter or thermal velocity of electrons species 1
+    :param alpha_e2: float, aw_hermite scaling parameter or thermal velocity of electrons species 2
+    :param alpha_i: float, aw_hermite scaling parameter or thermal velocity of ions
     :param C0_e1: 1d array, density of electrons species 1
     :param C0_e2: 1d array, density of electrons species 2
     :param C0_i: 1d array, density of ions

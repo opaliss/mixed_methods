@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.hermite.hermite_operators import nonlinear_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
 from operators.mixed_method_0.setup_mixed_method_0_two_stream import SimulationSetupMixedMethod0
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
@@ -32,7 +32,7 @@ def rhs(y):
 
     dydt_ = np.zeros(len(y))
 
-    # evolving bulk hermite
+    # evolving bulk aw_hermite
     A_eH = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
 
     dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] + nonlinear_hermite(E=E,
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
-    # bulk electrons => hermite (perturbed)
+    # bulk electrons => aw_hermite (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / setup.alpha_e1[-1]
     # beam electrons => legendre (unperturbed)

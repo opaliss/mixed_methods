@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1, closure_term
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.hermite.hermite_operators import nonlinear_hermite, psi_hermite_complement
+from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite, psi_hermite_complement
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
@@ -25,7 +25,7 @@ def rhs(y):
 
     dydt_ = np.zeros(len(y))
 
-    # evolving bulk hermite
+    # evolving bulk aw_hermite
     dydt_[:setup.Nv_e1 * setup.Nx] = setup.A_e_H @ y[:setup.Nv_e1 * setup.Nx] \
                                      + nonlinear_hermite(E=E,
                                                          psi=y[:setup.Nv_e1 * setup.Nx],

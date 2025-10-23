@@ -7,9 +7,9 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.hermite.hermite_operators import nonlinear_hermite, charge_density_two_stream_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite, charge_density_two_stream_hermite
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
-from operators.hermite.setup_hermite_two_stream import SimulationSetupTwoStreamHermite
+from operators.aw_hermite.setup_aw_hermite_two_stream import SimulationSetupTwoStreamHermite
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
@@ -103,32 +103,32 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save runtime
-    np.save("../../data/hermite/bump_on_tail_adaptive/sol_runtime_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/sol_runtime_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
             + "_" + str(setup.T) + ".npy", np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/hermite/bump_on_tail_adaptive/sol_u_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/sol_u_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", sol_midpoint_u)
 
-    np.save("../../data/hermite/bump_on_tail_adaptive/sol_t_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/sol_t_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
 
     # save time varying alpha and u
-    np.save("../../data/hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/hermite/bump_on_tail_adaptive/alpha_e2_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/alpha_e2_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e2)
 
-    np.save("../../data/hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
 
-    np.save("../../data/hermite/bump_on_tail_adaptive/u_e2_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/aw_hermite/bump_on_tail_adaptive/u_e2_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e2)

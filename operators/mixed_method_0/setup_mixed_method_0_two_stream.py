@@ -8,7 +8,7 @@ Last Update: June 9th, 2025
 
 import numpy as np
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
-from operators.hermite.hermite_operators import A1_hermite
+from operators.aw_hermite.aw_hermite_operators import A1_hermite
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -35,7 +35,7 @@ class SimulationSetupMixedMethod0:
         # velocity boundaries
         self.v_a = v_a
         self.v_b = v_b
-        # hermite scaling and shifting parameters
+        # aw_hermite scaling and shifting parameters
         self.alpha_e1 = [alpha_e1]
         self.u_e1 = [u_e1]
         self.alpha_e2 = alpha_e2

@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.hermite.hermite_operators import nonlinear_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
@@ -33,7 +33,7 @@ def rhs(y):
 
     dydt_ = np.zeros(len(y))
 
-    # evolving bulk hermite
+    # evolving bulk aw_hermite
     A_eH = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
     dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] \
                                      + nonlinear_hermite(E=E,
@@ -81,8 +81,8 @@ if __name__ == "__main__":
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=40,
-                                        nu_L=10,
+                                        T=30,
+                                        nu_L=20,
                                         nu_H=0,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
@@ -134,8 +134,7 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save(
-        "../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
         np.array([end_time_cpu, end_time_wall]))
 
