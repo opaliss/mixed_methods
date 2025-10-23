@@ -90,7 +90,7 @@ if __name__ == "__main__":
     setup = SimulationSetupMixedMethod2(Nx=101,
                                         Nv_e1=80,
                                         Nv_e2=80,
-                                        epsilon=1e-2,
+                                        epsilon=0.1,
                                         v_a=-2,
                                         v_b=2,
                                         alpha_e1=0.8,
