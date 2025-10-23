@@ -65,7 +65,8 @@ if __name__ == "__main__":
         exp_beam = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
         v_component_bulk = scipy.integrate.trapezoid(xi * exp_bulk, x=v_, dx=np.abs(v_[1] - v_[0]))
         v_component_beam = scipy.integrate.trapezoid(xi * exp_beam, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component_bulk * v_component_bulk + x_component_beam * v_component_beam
+        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component_bulk * v_component_bulk \
+                                               + x_component_beam * v_component_beam
 
     # start timer
     start_time_cpu = time.process_time()

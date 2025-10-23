@@ -88,14 +88,20 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                         # update parameters
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
                         param.replace_u_e1(u_e1_curr=u_e1_curr)
+                        if MM1:
+                            param.update_IJ()
 
                     elif case == 2:
                         print("(e1) tolerance met for u")
                         param.replace_u_e1(u_e1_curr=u_e1_curr)
+                        if MM1:
+                            param.update_IJ()
 
                     elif case == 3:
                         print("(e1) tolerance met for alpha")
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
+                        if MM1:
+                            param.update_IJ()
 
                     # project the previous timestamp results
                     y_sol[:, tt - 1][:param.Nv_e1 * param.Nx] = P @ y_sol[:, tt - 1][:param.Nv_e1 * param.Nx]
@@ -103,8 +109,7 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                 # update parameters electron 1
                 param.add_alpha_e1(alpha_e1_curr=param.alpha_e1[-1])
                 param.add_u_e1(u_e1_curr=param.u_e1[-1])
-                if param.MM1:
-                    param.update_IJ()
+
 
             if bump_hermite_adapt:
                 # update u (electron 2) parameter

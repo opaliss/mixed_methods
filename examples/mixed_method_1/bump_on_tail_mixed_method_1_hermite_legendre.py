@@ -72,7 +72,7 @@ def rhs(y):
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
                                         Nv_e1=100,
-                                        Nv_e2=400,
+                                        Nv_e2=100,
                                         epsilon=1e-2,
                                         v_a=-10,
                                         v_b=10,
@@ -81,7 +81,7 @@ if __name__ == "__main__":
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=30,
+                                        T=40,
                                         nu_L=10,
                                         nu_H=0,
                                         n0_e1=0.9,
@@ -89,22 +89,24 @@ if __name__ == "__main__":
                                         u_e2=4.5,
                                         alpha_e2=1/np.sqrt(2),
                                         gamma=0.5,
-                                        u_tol=1e-1,
-                                        alpha_tol=1e-1,
+                                        k0=1,
+                                        Nv_int=1000,
+                                        u_tol=1e-2,
+                                        alpha_tol=1e-2,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # grid
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, int(1e4), endpoint=True)
+    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
     # initial condition
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(0.3 * x_)) / setup.alpha_e1
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ * 2 * np.pi / setup.L)) / setup.alpha_e1
     # beam electrons => legendre
-    x_component = (1 + setup.epsilon * np.cos(0.3 * x_)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+    x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-2 * ((v_ - setup.u_e2) ** 2)) / setup.alpha_e2
+        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2)/ (setup.alpha_e2**2)) / setup.alpha_e2
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
                     nn + 1) * setup.Nx] = x_component * v_component

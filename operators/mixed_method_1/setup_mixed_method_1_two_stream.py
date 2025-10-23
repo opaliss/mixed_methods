@@ -15,8 +15,8 @@ import scipy
 
 class SimulationSetupMixedMethod1:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
-                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, Nv_int=int(1e4),
-                 m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=True):
+                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0,
+                 Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=True):
         # velocity grid
         # set up configuration parameters
         # spatial resolution
@@ -67,6 +67,8 @@ class SimulationSetupMixedMethod1:
         self.alpha_tol = alpha_tol
         # velocity resolution for projection and integral estimation
         self.Nv_int = Nv_int
+        # excited wavenumber
+        self.k0 = k0
 
         # matrices
         # finite difference derivative matrix
