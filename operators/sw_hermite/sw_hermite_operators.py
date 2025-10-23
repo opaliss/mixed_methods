@@ -7,10 +7,9 @@ import numpy as np
 import scipy
 
 
-
 def sw_psi_hermite(n, alpha_s, u_s, v):
-    """AW Hermite basis function (iterative approach)
-
+    """SW Hermite basis function (iterative approach)
+                ==> FYI this is also equal to the complement because it is the symmetric formulation =)
     :param alpha_s: float, velocity scaling parameter
     :param u_s, float, velocity shifting parameter
     :param v: float or array, the velocity coordinate on a grid
@@ -26,11 +25,9 @@ def sw_psi_hermite(n, alpha_s, u_s, v):
         return np.exp(-0.5 * (xi ** 2)) * (2 * xi) / np.sqrt(2 * np.sqrt(np.pi))
     else:
         psi = np.zeros((n + 1, len(xi)))
-        psi[0, :] = np.exp(-0.5 * (xi ** 2)) / np.sqrt(np.pi)
+        psi[0, :] = np.exp(-0.5 * (xi ** 2)) / np.sqrt(np.sqrt(np.pi))
         psi[1, :] = np.exp(-0.5 * (xi ** 2)) * (2 * xi) / np.sqrt(2 * np.sqrt(np.pi))
         for jj in range(1, n):
             factor = - alpha_s * np.sqrt((jj + 1) / 2)
             psi[jj + 1, :] = (alpha_s * np.sqrt(jj / 2) * psi[jj - 1, :] + u_s * psi[jj, :] - v * psi[jj, :]) / factor
     return psi[n, :]
-
-
