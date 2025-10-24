@@ -15,7 +15,7 @@ import scipy
 
 class SimulationSetupMixedMethod1:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
-                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0,
+                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0, cutoff, threshold_last_hermite,
                  Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=True):
         # velocity grid
         # set up configuration parameters
@@ -69,6 +69,9 @@ class SimulationSetupMixedMethod1:
         self.Nv_int = Nv_int
         # excited wavenumber
         self.k0 = k0
+        # re-projection parameters between the Hermite and Legendre formulations
+        self.cutoff = cutoff
+        self.threshold_last_hermite = threshold_last_hermite
 
         # matrices
         # finite difference derivative matrix
@@ -113,8 +116,8 @@ class SimulationSetupMixedMethod1:
 
     def update_IJ(self):
         v_ = np.linspace(self.v_a, self.v_b, self.Nv_int, endpoint=True)
-        for mm in range(self.Nv_e2):
-            for nn in range(self.Nv_e1 + 1):
+        for nn in range(self.Nv_e1 + 1):
+            for mm in range(self.Nv_e2):
                 if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
                     self.J_int[nn, mm] = 0
                     self.I_int_complement[nn, mm] = 0

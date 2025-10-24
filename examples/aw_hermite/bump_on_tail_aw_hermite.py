@@ -93,7 +93,7 @@ if __name__ == "__main__":
                                                                          max_iter=100,
                                                                          bump_hermite_adapt=True,
                                                                          bulk_hermite_adapt=True,
-                                                                         adaptive=True,
+                                                                         adaptive_u_and_alpha=True,
                                                                          param=setup)
 
     end_time_cpu = time.process_time() - start_time_cpu

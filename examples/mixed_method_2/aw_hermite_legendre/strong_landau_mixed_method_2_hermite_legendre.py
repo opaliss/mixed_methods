@@ -129,7 +129,7 @@ if __name__ == "__main__":
                                                                          r_tol=1e-11,
                                                                          max_iter=100,
                                                                          param=setup,
-                                                                         adaptive=True,
+                                                                         adaptive_u_and_alpha=True,
                                                                          bulk_hermite_adapt=True,
                                                                          bump_hermite_adapt=False)
 

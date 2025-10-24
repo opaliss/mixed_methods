@@ -94,6 +94,8 @@ if __name__ == "__main__":
                                         Nv_int=1000,
                                         u_tol=1e-2,
                                         alpha_tol=1e-2,
+                                        cutoff=5,
+                                        threshold_last_hermite=1e-1,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
@@ -125,7 +127,7 @@ if __name__ == "__main__":
                                                                          param=setup,
                                                                          bump_hermite_adapt=False,
                                                                          bulk_hermite_adapt=True,
-                                                                         adaptive=True,
+                                                                         adaptive_u_and_alpha=True,
                                                                          MM1=True)
 
     end_time_cpu = time.process_time() - start_time_cpu
@@ -135,22 +137,22 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
         np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u (for the bulk Hermite)
-    np.save("../../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)

@@ -5,6 +5,7 @@ Version: Oct 20th, 2025
 """
 import numpy as np
 import scipy
+from operators.reprojection_between_hermite_and_legendre import reprojection_between_aw_hermite_and_legendre
 from operators.adaptive_aw_hermite import check_if_update_needed, updated_u, updated_alpha, get_projection_matrix
 
 
@@ -22,7 +23,7 @@ def implicit_nonlinear_equation(y_new, y_old, dt, right_hand_side):
 
 def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_tol=1e-8, a_tol=1e-15, max_iter=100,
                                                  bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False, MM2=False,
-                                                 adaptive=True):
+                                                 adaptive_u_and_alpha=True, adaptive_between_hermite_and_legendre=True):
     """Solve the system
 
         dy/dt = rhs(y),    y(0) = y0,
@@ -35,12 +36,13 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
     ----------
     :param bulk_hermite_adapt: boolean, default is True
     :param bump_hermite_adapt: boolean, default is True
+    :param adaptive_between_hermite_and_legendre: boolean, default is True
     :param param: object of SimulationSetup with all the simulation setup parameters
     :param max_iter: maximum iterations of nonlinear solver, default is 100
     :param a_tol: absolute tolerance nonlinear solver, default is 1e-15
     :param r_tol: relative tolerance nonlinear solver, default is 1e-8
     :param y_0: initial condition
-    :param adaptive: boolean
+    :param adaptive_u_and_alpha: boolean, default is True
     :param right_hand_side: function of the right-hand-side, i.e. dy/dt = rhs(y, t)
     :param MM1: boolean if mixed method #1, default is False
     :param MM2: boolean if mixed method #2, default is False
@@ -60,7 +62,19 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
     for tt in range(1, len(param.t_vec)):
         # print out the current time stamp
         print("\n time = ", param.t_vec[tt])
-        if adaptive:
+        if adaptive_u_and_alpha:
+            if adaptive_between_hermite_and_legendre:
+                if np.max(y_sol[:, tt - 1][param.Nv_e1 * param.Nx -
+                                           param.Nx:param.Nv_e1 * param.Nx]) >= param.threshold_last_hermite:
+                    # we update the simulation
+                    y_sol[:, tt - 1] = reprojection_between_aw_hermite_and_legendre(cutoff=param.cutoff, Nx=param.Nx,
+                                                                                    Nv_e1=param.Nv_e1,
+                                                                                    Nv_e2=param.Nv_e2,
+                                                                                    y_curr=y_sol[:, tt - 1],
+                                                                                    v_a=param.v_a,
+                                                                                    v_b=param.v_b,
+                                                                                    J=param.J_int)
+
             if bulk_hermite_adapt:
                 # updated u (electron 1) parameter
                 u_e1_curr = updated_u(u_prev=param.u_e1[-1],
