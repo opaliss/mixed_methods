@@ -79,8 +79,10 @@ if __name__ == "__main__":
                                         epsilon=1e-2,
                                         v_a=-10,
                                         v_b=10,
-                                        alpha_e1=np.sqrt(2),
+                                        alpha_e1=1,
                                         u_e1=0,
+                                        u_e2=4.5,
+                                        alpha_e2=1 / np.sqrt(2),
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
@@ -89,14 +91,12 @@ if __name__ == "__main__":
                                         nu_H=1,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
-                                        u_e2=4.5,
-                                        alpha_e2=1 / np.sqrt(2),
                                         gamma=0.5,
                                         k0=1,
                                         Nv_int=1000,
                                         u_tol=1e-2,
                                         alpha_tol=1e-2,
-                                        construct_integrals=True)
+                                        construct_integrals=False)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
@@ -104,7 +104,9 @@ if __name__ == "__main__":
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
     # initial condition
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ * 2 * np.pi / setup.L)) / setup.alpha_e1[-1]
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ * 2 * np.pi / setup.L))\
+                    / setup.alpha_e1[-1] \
+                    / (np.sqrt(2 * np.sqrt(np.pi)))
     # beam electrons => legendre
     x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
