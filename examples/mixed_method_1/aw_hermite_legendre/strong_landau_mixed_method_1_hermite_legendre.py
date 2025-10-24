@@ -109,15 +109,15 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/strong_landau/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) +
         "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/strong_landau/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_1_hermite_legendre/strong_landau/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../data/mixed_method_1_aw_hermite_legendre/strong_landau/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

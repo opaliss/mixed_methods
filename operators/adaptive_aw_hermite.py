@@ -1,8 +1,7 @@
-"""
-Operators of the Spectral Plasma Solver Hermite-Fourier Expansion
+"""update the AW Hermite projection based on alpha and u
 
 Author: Opal Issan (oissan@ucsd.edu)
-Date: Oct 20th, 2025
+Date: Oct 24th, 2025
 """
 import numpy as np
 import scipy

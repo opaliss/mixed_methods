@@ -5,7 +5,7 @@ Version: Oct 20th, 2025
 """
 import numpy as np
 import scipy
-from operators.adaptive_hermite import check_if_update_needed, updated_u, updated_alpha, get_projection_matrix
+from operators.adaptive_aw_hermite import check_if_update_needed, updated_u, updated_alpha, get_projection_matrix
 from operators.implicit_midpoint_adaptive_two_stream import implicit_nonlinear_equation
 
 
