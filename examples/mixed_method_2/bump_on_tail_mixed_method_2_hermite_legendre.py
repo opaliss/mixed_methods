@@ -1,7 +1,9 @@
 """Module to run mixed method #2 bump on tail testcase
 
 Author: Opal Issan
-Date: Oct 23rd, 2025
+Last Update: Oct 23rd, 2025
+
+BEWARE: THE INITIAL CONDITION RIGHT NOW DOES NOT SATISFY THE MIXED METHOD #2 CONSTRAINT===> WE NEED TO REFORMULATE THIS!
 """
 import sys, os
 
@@ -10,7 +12,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
 from operators.mixed_method_2.mixed_method_2_operators import extra_term_2, extra_term_3
-from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
+from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre, boundary_mm2
 from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
 from operators.mixed_method_2.setup_mixed_method_2_two_stream import SimulationSetupMixedMethod2
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
@@ -49,7 +51,19 @@ def rhs(y):
                                                     D=setup.D,
                                                     Nx=setup.Nx,
                                                     state_legendre=y[setup.Nv_e1 * setup.Nx:],
-                                                    Nv_L=setup.Nv_e2)
+                                                    Nv_L=setup.Nv_e2)\
+                                    # + boundary_mm2(E=E,
+                                    #                psi=y[setup.Nv_e1 * setup.Nx:],
+                                    #                q=setup.q_e,
+                                    #                m=setup.m_e,
+                                    #                Nv=setup.Nv,
+                                    #                Nx=setup.Nx,
+                                    #                gamma=setup.gamma,
+                                    #                v_a=setup.v_a,
+                                    #                v_b=setup.v_b,
+                                    #                psi_dual_v_a=setup.psi_dual_v_a,
+                                    #                psi_dual_v_b=setup.psi_dual_v_b,
+                                    #                alpha=setup.alpha_e1[-1])
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
                                      + nonlinear_legendre(E=E,

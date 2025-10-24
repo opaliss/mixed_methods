@@ -15,7 +15,7 @@ import scipy
 
 class SimulationSetupMixedMethod2:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, alpha_e2, u_e2,
-                 gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2, k0, u_tol=np.inf, alpha_tol=np.inf,
+                 gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2, k0, u_tol=np.inf, alpha_tol=np.inf, penalty=0,
                  Nv_int=1000, m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=False):
         # velocity grid
         # set up configuration parameters
@@ -68,6 +68,8 @@ class SimulationSetupMixedMethod2:
         self.Nv_int = Nv_int
         # excited wavenumber
         self.k0 = k0
+        # enforce mixed method constraint by adding it to the right hand side
+        self.penalty = penalty
 
         # matrices
         # finite difference derivative matrix
@@ -89,9 +91,14 @@ class SimulationSetupMixedMethod2:
         # xi functions
         self.xi_v_a = np.zeros(self.Nv_e2)
         self.xi_v_b = np.zeros(self.Nv_e2)
+        self.psi_dual_v_a = np.zeros(self.Nv_e1)
+        self.psi_dual_v_b = np.zeros(self.Nv_e1)
         for nn in range(self.Nv_e2):
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
+        for nn in range(self.Nv_e1):
+            self.psi_dual_v_a[nn] = aw_psi_hermite_complement(n=nn, v=self.v_a, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1])
+            self.psi_dual_v_b[nn] = aw_psi_hermite_complement(n=nn, v=self.v_b, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1])
 
         self.construct_integrals = construct_integrals
         if self.construct_integrals:
@@ -131,3 +138,8 @@ class SimulationSetupMixedMethod2:
                         xi_legendre(n=mm, v=self.v_, v_a=self.v_a, v_b=self.v_b)
                         * aw_psi_hermite_complement(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=self.v_),
                         x=self.v_, dx=np.abs(self.v_[1] - self.v_[0]))
+
+    def update_psi_dual_va_vb(self):
+        for nn in range(self.Nv_e1):
+            self.psi_dual_v_a[nn] = aw_psi_hermite_complement(n=nn, v=self.v_a, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1])
+            self.psi_dual_v_b[nn] = aw_psi_hermite_complement(n=nn, v=self.v_b, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1])

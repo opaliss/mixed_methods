@@ -1,7 +1,7 @@
 """Module to run mixed method #2 weak landau testcase
 
 Author: Opal Issan
-Date: Oct 23rd, 2025
+Last updated: Oct 23rd, 2025
 """
 import sys, os
 
@@ -15,6 +15,7 @@ from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
 from operators.mixed_method_2.setup_mixed_method_2_two_stream import SimulationSetupMixedMethod2
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
+from scipy.sparse.linalg import lgmres
 import time
 import numpy as np
 
@@ -24,9 +25,18 @@ def rhs(y):
     rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha_e1[-1],
                                                    v_a=setup.v_a, v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[
-                                                                 setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
 
+    # print("before = ", np.sum(np.abs((setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (
+    # setup.Nv_e2, setup.Nx))).flatten())))
+    # enforce the constraints !!!
+    for ii in range(setup.Nx):
+        y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx] = \
+            lgmres(A=setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2],
+                   b=np.zeros(setup.Nv_e1),
+                   atol=1e-12, rtol=1e-12, x0=y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx])[0]
+
+    # print("after = ", np.sum(np.abs((setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (setup.Nv_e2, setup.Nx))).flatten())))
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
@@ -47,8 +57,8 @@ def rhs(y):
                                                     D=setup.D,
                                                     Nx=setup.Nx,
                                                     state_legendre=y[setup.Nv_e1 * setup.Nx:],
-                                                    Nv_L=setup.Nv_e2)\
-                                    + (setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(dydt_[setup.Nv_e1 * setup.Nx:], (setup.Nv_e2, setup.Nx))).flatten() # penalty
+                                                    Nv_L=setup.Nv_e2)#\
+                                    #+ setup.penalty * (setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (setup.Nv_e2, setup.Nx))).flatten() # penalty
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
                                      + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
@@ -65,8 +75,7 @@ def rhs(y):
                                      + extra_term_1(J_int=setup.J_int[-1, :],
                                                     v_b=setup.v_b,
                                                     v_a=setup.v_a,
-                                                    C_hermite_last=y[(
-                                                                                 setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
+                                                    C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
                                                     alpha=setup.alpha_e1[-1],
                                                     Nv_H=setup.Nv_e1,
                                                     D=setup.D,
@@ -88,8 +97,8 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod2(Nx=101,
-                                        Nv_e1=80,
-                                        Nv_e2=80,
+                                        Nv_e1=51,
+                                        Nv_e2=51,
                                         epsilon=1e-2,
                                         v_a=-2,
                                         v_b=2,
@@ -109,6 +118,7 @@ if __name__ == "__main__":
                                         u_tol=1e-2,
                                         n0_e1=1,
                                         n0_e2=0,
+                                        penalty=0.1,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
