@@ -9,7 +9,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_0.setup_mixed_method_0_two_stream import SimulationSetupMixedMethod0
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
@@ -35,14 +35,14 @@ def rhs(y):
     # evolving bulk aw_hermite
     A_eH = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
 
-    dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] + nonlinear_hermite(E=E,
-                                                                                           psi=y[
+    dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] + nonlinear_aw_hermite(E=E,
+                                                                                              psi=y[
                                                                                                :setup.Nv_e1 * setup.Nx],
-                                                                                           q=setup.q_e,
-                                                                                           m=setup.m_e,
-                                                                                           alpha=setup.alpha_e1[-1],
-                                                                                           Nv=setup.Nv_e1,
-                                                                                           Nx=setup.Nx)
+                                                                                              q=setup.q_e,
+                                                                                              m=setup.m_e,
+                                                                                              alpha=setup.alpha_e1[-1],
+                                                                                              Nv=setup.Nv_e1,
+                                                                                              Nx=setup.Nx)
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] + nonlinear_legendre(E=E, psi=y[
                                                                                                             setup.Nv_e1 * setup.Nx:],

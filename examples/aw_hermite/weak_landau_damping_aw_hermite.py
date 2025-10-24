@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite, charge_density_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite, charge_density_aw_hermite
 from operators.aw_hermite.setup_aw_hermite import SimulationSetupHermite
 from operators.implicit_midpoint_adaptive_single_stream import implicit_midpoint_solver_adaptive_single_stream
 from operators.poisson_solver import gmres_solver
@@ -17,10 +17,10 @@ import numpy as np
 
 def rhs(y):
     # charge density computed
-    rho = charge_density_hermite(alpha_e=setup.alpha_e[-1],
-                                 alpha_i=setup.alpha_i[-1],
-                                 q_e=setup.q_e, q_i=setup.q_i,
-                                 C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx) / setup.alpha_i[-1])
+    rho = charge_density_aw_hermite(alpha_e=setup.alpha_e[-1],
+                                    alpha_i=setup.alpha_i[-1],
+                                    q_e=setup.q_e, q_i=setup.q_i,
+                                    C0_e=y[:setup.Nx], C0_i=np.ones(setup.Nx) / setup.alpha_i[-1])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -28,8 +28,8 @@ def rhs(y):
     A_e = setup.alpha_e[-1] * setup.A_off + setup.u_e[-1] * setup.A_diag + setup.nu * setup.A_col
 
     # evolving only electrons
-    return A_e @ y + nonlinear_hermite(E=E, psi=y, Nv=setup.Nv, Nx=setup.Nx, alpha=setup.alpha_e[-1],
-                                       q=setup.q_e, m=setup.m_e)
+    return A_e @ y + nonlinear_aw_hermite(E=E, psi=y, Nv=setup.Nv, Nx=setup.Nx, alpha=setup.alpha_e[-1],
+                                          q=setup.q_e, m=setup.m_e)
 
 
 if __name__ == "__main__":

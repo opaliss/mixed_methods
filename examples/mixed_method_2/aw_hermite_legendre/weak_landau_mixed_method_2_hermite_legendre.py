@@ -11,7 +11,7 @@ from operators.mixed_method_0.mixed_method_0_operators import charge_density_two
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
 from operators.mixed_method_2.mixed_method_2_operators import extra_term_2, extra_term_3
 from operators.legendre.legendre_operators import nonlinear_legendre
-from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_2.setup_mixed_method_2_two_stream import SimulationSetupMixedMethod2
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
@@ -45,13 +45,13 @@ def rhs(y):
     # evolving bulk aw_hermite
     A_eH = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
     dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] \
-                                     + nonlinear_hermite(E=E,
-                                                         psi=y[:setup.Nv_e1 * setup.Nx],
-                                                         q=setup.q_e,
-                                                         m=setup.m_e,
-                                                         alpha=setup.alpha_e1[-1],
-                                                         Nv=setup.Nv_e1,
-                                                         Nx=setup.Nx) \
+                                     + nonlinear_aw_hermite(E=E,
+                                                            psi=y[:setup.Nv_e1 * setup.Nx],
+                                                            q=setup.q_e,
+                                                            m=setup.m_e,
+                                                            alpha=setup.alpha_e1[-1],
+                                                            Nv=setup.Nv_e1,
+                                                            Nx=setup.Nx) \
                                      + extra_term_2(I_int_complement=setup.I_int_complement[-1, :],
                                                     Nv_H=setup.Nv_e1,
                                                     D=setup.D,

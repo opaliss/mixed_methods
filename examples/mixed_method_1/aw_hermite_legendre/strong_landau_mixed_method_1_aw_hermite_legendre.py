@@ -10,7 +10,7 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
 from operators.legendre.legendre_operators import nonlinear_legendre
-from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint import implicit_midpoint_solver
 from operators.poisson_solver import gmres_solver
@@ -32,13 +32,13 @@ def rhs(y):
 
     # evolving bulk aw_hermite
     dydt_[:setup.Nv_e1 * setup.Nx] = setup.A_e_H @ y[:setup.Nv_e1 * setup.Nx] \
-                                     + nonlinear_hermite(E=E,
-                                                         psi=y[:setup.Nv_e1 * setup.Nx],
-                                                         q=setup.q_e,
-                                                         m=setup.m_e,
-                                                         alpha=setup.alpha_e1,
-                                                         Nv=setup.Nv_e1,
-                                                         Nx=setup.Nx)
+                                     + nonlinear_aw_hermite(E=E,
+                                                            psi=y[:setup.Nv_e1 * setup.Nx],
+                                                            q=setup.q_e,
+                                                            m=setup.m_e,
+                                                            alpha=setup.alpha_e1,
+                                                            Nv=setup.Nv_e1,
+                                                            Nx=setup.Nx)
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
                                      + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],

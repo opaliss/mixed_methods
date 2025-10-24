@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.aw_hermite.aw_hermite_operators import nonlinear_hermite, charge_density_two_stream_hermite
+from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite, charge_density_two_stream_aw_hermite
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.aw_hermite.setup_aw_hermite_two_stream import SimulationSetupTwoStreamHermite
 from operators.poisson_solver import gmres_solver
@@ -17,13 +17,13 @@ import numpy as np
 
 def rhs(y):
     # charge density computed for poisson's equation
-    rho = charge_density_two_stream_hermite(C0_e1=y[:setup.Nx],
-                                            C0_e2=y[setup.Nx * setup.Nv_e1: setup.Nx * (setup.Nv_e1 + 1)],
-                                            C0_i=np.ones(setup.Nx) / setup.alpha_i[-1],
-                                            alpha_e1=setup.alpha_e1[-1],
-                                            alpha_e2=setup.alpha_e2[-1],
-                                            alpha_i=setup.alpha_i[-1],
-                                            q_e1=setup.q_e1, q_e2=setup.q_e2, q_i=setup.q_i)
+    rho = charge_density_two_stream_aw_hermite(C0_e1=y[:setup.Nx],
+                                               C0_e2=y[setup.Nx * setup.Nv_e1: setup.Nx * (setup.Nv_e1 + 1)],
+                                               C0_i=np.ones(setup.Nx) / setup.alpha_i[-1],
+                                               alpha_e1=setup.alpha_e1[-1],
+                                               alpha_e2=setup.alpha_e2[-1],
+                                               alpha_i=setup.alpha_i[-1],
+                                               q_e1=setup.q_e1, q_e2=setup.q_e2, q_i=setup.q_i)
 
     # electric field computed
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -36,15 +36,15 @@ def rhs(y):
     A_e2 = setup.u_e2[-1] * setup.A_diag_e2 + setup.alpha_e2[-1] * setup.A_off_e2 + setup.nu_e2 * setup.A_col_e2
 
     dydt_[:setup.Nv_e1 * setup.Nx] = A_e1 @ y[:setup.Nv_e1 * setup.Nx] \
-                                     + nonlinear_hermite(E=E, psi=y[:setup.Nv_e1 * setup.Nx], Nv=setup.Nv_e1,
-                                                         Nx=setup.Nx,
-                                                         q=setup.q_e1, m=setup.m_e1, alpha=setup.alpha_e1[-1])
+                                     + nonlinear_aw_hermite(E=E, psi=y[:setup.Nv_e1 * setup.Nx], Nv=setup.Nv_e1,
+                                                            Nx=setup.Nx,
+                                                            q=setup.q_e1, m=setup.m_e1, alpha=setup.alpha_e1[-1])
 
     # electron species (2) => bump
     dydt_[setup.Nv_e1 * setup.Nx:] = A_e2 @ y[setup.Nv_e1 * setup.Nx:] \
-                                     + nonlinear_hermite(E=E, psi=y[setup.Nv_e1 * setup.Nx:], Nv=setup.Nv_e2,
-                                                         Nx=setup.Nx,
-                                                         q=setup.q_e2, m=setup.m_e2, alpha=setup.alpha_e2[-1])
+                                     + nonlinear_aw_hermite(E=E, psi=y[setup.Nv_e1 * setup.Nx:], Nv=setup.Nv_e2,
+                                                            Nx=setup.Nx,
+                                                            q=setup.q_e2, m=setup.m_e2, alpha=setup.alpha_e2[-1])
     return dydt_
 
 
