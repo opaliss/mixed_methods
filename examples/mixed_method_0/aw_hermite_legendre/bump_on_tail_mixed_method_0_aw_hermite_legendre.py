@@ -61,9 +61,9 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod0(Nx=101,
-                                        Nv_e1=100,
-                                        Nv_e2=100,
+    setup = SimulationSetupMixedMethod0(Nx=51,
+                                        Nv_e1=50,
+                                        Nv_e2=50,
                                         epsilon=1e-2,
                                         v_a=-10,
                                         v_b=10,
@@ -82,7 +82,10 @@ if __name__ == "__main__":
                                         u_tol=1e-1,
                                         alpha_tol=1e-1,
                                         n0_e1=0.9,
-                                        n0_e2=0.1)
+                                        n0_e2=0.1,
+                                        threshold_last_hermite=0.001,
+                                        construct_integrals=True,
+                                        cutoff=5)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
@@ -113,7 +116,7 @@ if __name__ == "__main__":
                                                                          adaptive_u_and_alpha=True,
                                                                          bulk_hermite_adapt=True,
                                                                          bump_hermite_adapt=False,
-                                                                         adaptive_between_hermite_and_legendre=False)
+                                                                         adaptive_between_hermite_and_legendre=True)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall
@@ -122,23 +125,23 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)

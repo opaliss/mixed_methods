@@ -7,7 +7,7 @@ import numpy as np
 import scipy
 
 
-def updated_alpha(alpha_prev, C20, C10, C00):
+def updated_alpha(alpha_prev, C20, C10, C00, D=np.nan, alpha_filter_thresh=0.1, window_size=5):
     """
 
     :param C00: float, the average zeroth moment
@@ -16,10 +16,16 @@ def updated_alpha(alpha_prev, C20, C10, C00):
     :param alpha_prev: float, previous iterative alpha^{s}_{j-1} parameter
     :return: alpha at the updated iteration alpha^{s}_{j}
     """
-    return (alpha_prev * np.sqrt(1 + np.sqrt(2) * C20 / C00 - (C10 / C00) ** 2)).real
+    solution = alpha_prev * np.sqrt(1 + np.sqrt(2) * C20 / C00 - (C10 / C00) ** 2)
+    if not np.isscalar(solution):
+        # smooth it if needed
+        dalphadx = D @ solution
+        if np.var(dalphadx) > alpha_filter_thresh:
+            print("smoothing alpha")
+    return solution
 
 
-def updated_u(u_prev, alpha_prev, C00, C10):
+def updated_u(u_prev, alpha_prev, C00, C10, D=np.nan, u_filter_thresh=0.1, window_size=5):
     """
 
     :param u_prev: float, previous iterative u^{s}_{j-1} parameter
@@ -28,7 +34,13 @@ def updated_u(u_prev, alpha_prev, C00, C10):
     :param C10: float, the average first moment
     :return: u at the updated iteration u^{s}_{j}
     """
-    return (u_prev + alpha_prev * C10 / C00 / np.sqrt(2)).real
+    solution = u_prev + alpha_prev * C10 / C00 / np.sqrt(2)
+    if not np.isscalar(solution):
+        dudx = D @ solution
+        if np.var(dudx) > u_filter_thresh:
+            print("smoothing u")
+            solution = np.convolve(solution, np.ones(window_size) / window_size)
+    return solution
 
 
 def a_constant(alpha_curr, alpha_prev):
@@ -52,7 +64,7 @@ def b_constant(u_curr, u_prev, alpha_prev):
     return (u_curr - u_prev) / alpha_prev
 
 
-def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev,  Nv):
+def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev, Nv):
     """
 
     :param alpha_curr: float, updated alpha^{s}_{j}
@@ -279,11 +291,12 @@ def check_if_update_needed(u_s_curr, u_s, u_s_tol, alpha_s_curr, alpha_s, alpha_
             return False
 
 
-def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, alpha_s_tol, u_s_tol):
+def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, alpha_s_tol, u_s_tol, epsilon=1e-8):
     """
 
     :param alpha_s_tol:
     :param u_s_tol:
+    :param epsilon: default is 1E-8
     :param u_s_curr: float,  u^{s}_{j+1}
     :param u_s: float, U^{s}_{j}
     :param alpha_s_curr: float, alpha^{s}_{j+1}
@@ -294,45 +307,60 @@ def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, al
     """
     if np.isscalar(u_s):
         # case (i)
-        if np.abs(u_s_curr - u_s) >= u_s_tol and np.abs((alpha_s_curr - alpha_s)/alpha_s) >= alpha_s_tol:
-            return scipy.sparse.kron(P_case_i(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nv=Nv), np.eye(N=Nx_total), format="bsr"), 1
+        if np.abs(u_s_curr - u_s) >= u_s_tol and np.abs((alpha_s_curr - alpha_s) / alpha_s) >= alpha_s_tol:
+            return scipy.sparse.kron(
+                P_case_i(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nv=Nv),
+                np.eye(N=Nx_total), format="bsr"), 1
 
         # case (ii)
-        elif np.abs(u_s_curr - u_s) > u_s_tol and np.abs((alpha_s_curr - alpha_s)/alpha_s) <= alpha_s_tol:
-            return scipy.sparse.kron(P_case_ii(alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nv=Nv), np.eye(N=Nx_total), format="bsr"), 2
+        elif np.abs(u_s_curr - u_s) > u_s_tol and np.abs((alpha_s_curr - alpha_s) / alpha_s) <= alpha_s_tol:
+            return scipy.sparse.kron(P_case_ii(alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nv=Nv),
+                                     np.eye(N=Nx_total), format="bsr"), 2
 
         # case (iii)
-        elif np.abs(u_s_curr - u_s) < u_s_tol and np.abs((alpha_s_curr - alpha_s)/alpha_s) > alpha_s_tol:
-            return scipy.sparse.kron(P_case_iii(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, Nv=Nv), np.eye(N=Nx_total), format="bsr"), 3
+        elif np.abs(u_s_curr - u_s) < u_s_tol and np.abs((alpha_s_curr - alpha_s) / alpha_s) > alpha_s_tol:
+            return scipy.sparse.kron(P_case_iii(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, Nv=Nv), np.eye(N=Nx_total),
+                                     format="bsr"), 3
 
         # no tolerance is met
         else:
-            return np.eye(Nv*Nx_total)
+            return np.eye(Nv * Nx_total)
     else:
         # case (i)
-        if np.linalg.norm(u_s_curr - u_s, ord=2) >= u_s_tol and np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) >= alpha_s_tol:
-            holder = np.zeros((Nv*Nx_total, Nv*Nx_total))
+        if np.linalg.norm(u_s_curr - u_s, ord=2) >= u_s_tol \
+                and np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) >= alpha_s_tol:
+            holder = np.zeros((Nv * Nx_total, Nv * Nx_total))
             for ii in range(Nx_total):
-                holder[ii::Nx_total, ii::Nx_total] = P_case_i(alpha_curr=alpha_s_curr[ii], alpha_prev=alpha_s[ii],
-                                                              u_curr=u_s_curr[ii], u_prev=u_s[ii], Nv=Nv)
+                if np.abs(u_s_curr[ii] - u_s[ii]) < epsilon or np.abs(alpha_s_curr[ii] - alpha_s[ii]) < epsilon:
+                    holder[ii::Nx_total, ii::Nx_total] = np.eye(Nv)
+                else:
+                    holder[ii::Nx_total, ii::Nx_total] = P_case_i(alpha_curr=alpha_s_curr[ii],
+                                                                  alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
+                                                                  u_prev=u_s[ii], Nv=Nv)
             return holder, 1
 
         # case (ii)
         elif np.linalg.norm(u_s_curr - u_s, ord=2) > u_s_tol and \
                 np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) < alpha_s_tol:
-            holder = np.zeros((Nv*Nx_total, Nv*Nx_total))
+            holder = np.zeros((Nv * Nx_total, Nv * Nx_total))
             for ii in range(Nx_total):
-                holder[ii::Nx_total, ii::Nx_total] = P_case_ii(alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
-                                                               u_prev=u_s[ii], Nv=Nv)
+                if np.abs(u_s_curr[ii] - u_s[ii]) < epsilon:
+                    holder[ii::Nx_total, ii::Nx_total] = np.eye(Nv)
+                else:
+                    holder[ii::Nx_total, ii::Nx_total] = P_case_ii(alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
+                                                                   u_prev=u_s[ii], Nv=Nv)
             return holder, 2
 
         # case (iii)
         elif np.linalg.norm(u_s_curr - u_s, ord=2) < u_s_tol and \
                 np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) > alpha_s_tol:
-            holder = np.zeros((Nv*Nx_total, Nv*Nx_total))
+            holder = np.zeros((Nv * Nx_total, Nv * Nx_total))
             for ii in range(Nx_total):
-                holder[ii::Nx_total, ii::Nx_total] = P_case_iii(alpha_curr=alpha_s_curr[ii],
-                                                                alpha_prev=alpha_s[ii], Nv=Nv)
+                if np.abs(alpha_s_curr[ii] - alpha_s[ii]) < epsilon:
+                    holder[ii::Nx_total, ii::Nx_total] = np.eye(Nv)
+                else:
+                    holder[ii::Nx_total, ii::Nx_total] = P_case_iii(alpha_curr=alpha_s_curr[ii], alpha_prev=alpha_s[ii],
+                                                                    Nv=Nv)
             return holder, 3
 
         # no tolerance is met

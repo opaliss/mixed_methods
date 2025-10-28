@@ -7,15 +7,19 @@ Last Update: Oct 27th, 2025
 """
 
 import numpy as np
+import scipy
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
-from operators.aw_hermite.aw_hermite_operators import A1_hermite, M1_du_dx, M2_du_dx, M1_dalpha_dx, M2_dalpha_dx
+from operators.aw_hermite.aw_hermite_operators import A1_hermite, M1_du_dx, M2_du_dx, M1_dalpha_dx, M2_dalpha_dx, \
+    aw_psi_hermite, aw_psi_hermite_complement
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H,
-                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0, adaptive_in_space=True,
+                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0, adaptive_in_space=True, window_size=5,
+                 u_filter_thresh=np.inf, construct_integrals=False,
+                 alpha_filter_thresh=np.inf, threshold_last_hermite=np.inf, cutoff=np.inf,
                  Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
@@ -68,6 +72,12 @@ class SimulationSetupMixedMethod0:
         self.Nv_int = Nv_int
         # initial perturbed wavenumber
         self.k0 = k0
+        # convolving alpha and u
+        self.window_size = window_size
+        self.u_filter_thresh = u_filter_thresh
+        self.alpha_filter_thresh = alpha_filter_thresh
+        self.cutoff = cutoff
+        self.threshold_last_hermite = threshold_last_hermite
 
         # matrices
         # finite difference derivative matrix
@@ -101,6 +111,11 @@ class SimulationSetupMixedMethod0:
             self.M2_du_dx = M2_du_dx(Nv=self.Nv_e1, Nx=self.Nx)
             self.M2_dalpha_dx = M2_dalpha_dx(Nv=self.Nv_e1, Nx=self.Nx)
 
+        if construct_integrals:
+            self.J_int = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
+            self.I_int_complement = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
+            self.update_IJ()
+
     def add_alpha_e1(self, alpha_e1_curr):
         self.alpha_e1.append(alpha_e1_curr)
 
@@ -112,3 +127,25 @@ class SimulationSetupMixedMethod0:
 
     def replace_u_e1(self, u_e1_curr):
         self.u_e1[-1] = u_e1_curr
+
+    def update_IJ(self):
+        v_ = np.linspace(self.v_a, self.v_b, self.Nv_int, endpoint=True)
+        for nn in range(self.Nv_e1 + 1):
+            for mm in range(self.Nv_e2):
+                if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
+                    self.J_int[nn, mm] = 0
+                    self.I_int_complement[nn, mm] = 0
+                elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
+                    self.J_int[nn, mm] = 0
+                    self.I_int_complement[nn, mm] = 0
+                else:
+                    self.J_int[nn, mm] = scipy.integrate.trapezoid(
+                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                        * aw_psi_hermite(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
+                        x=v_, dx=np.abs(v_[1] - v_[0]))
+
+                    self.I_int_complement[nn, mm] = scipy.integrate.trapezoid(
+                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                        * aw_psi_hermite_complement(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
+                        x=v_, dx=np.abs(v_[1] - v_[0]))
+

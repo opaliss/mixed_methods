@@ -11,7 +11,8 @@ from operators.adaptive_aw_hermite import P_case_iii, check_if_update_needed, up
 from operators.implicit_midpoint_adaptive_two_stream import implicit_nonlinear_equation
 
 
-def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, param, r_tol=1e-8, a_tol=1e-15, max_iter=100,
+def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, param, r_tol=1e-8,
+                                                          a_tol=1e-15, max_iter=100,
                                                  bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False, MM2=False,
                                                  adaptive_u_and_alpha=True):
     """Solve the system
@@ -57,32 +58,40 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 u_e1_curr = updated_u(u_prev=param.u_e1[-1],
                                       alpha_prev=param.alpha_e1[-1],
                                       C00=y_sol[:, tt - 1][:param.Nx],
-                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx])
+                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx], D=param.D, window_size=param.window_size,
+                                      u_filter_thresh=param.u_filter_thresh)
 
                 # updated alpha (electron 1) parameter
                 alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
                                               C20=y_sol[:, tt - 1][2 * param.Nx: 3 * param.Nx],
                                               C10=y_sol[:, tt - 1][param.Nx: 2 * param.Nx],
-                                              C00=y_sol[:, tt - 1][:param.Nx])
+                                              C00=y_sol[:, tt - 1][:param.Nx], D=param.D, window_size=param.window_size,
+                                              alpha_filter_thresh=param.alpha_filter_thresh)
 
                 # electron 1 check mark
-                if check_if_update_needed(u_s_curr=u_e1_curr, u_s=param.u_e1[-1],
+                if check_if_update_needed(u_s_curr=u_e1_curr,
+                                          u_s=param.u_e1[-1],
                                           u_s_tol=param.u_tol,
-                                          alpha_s_curr=alpha_e1_curr, alpha_s=param.alpha_e1[-1],
+                                          alpha_s_curr=alpha_e1_curr,
+                                          alpha_s=param.alpha_e1[-1],
                                           alpha_s_tol=param.alpha_tol):
 
                     print("updating u or alpha (electron 1)")
-                    print("[new] ue1 = ", u_e1_curr)
-                    print("[new] alpha_e1 = ", alpha_e1_curr)
-                    print("[curr] ue1 = ", param.u_e1[-1])
-                    print("[curr] alpha_e1 = ", param.alpha_e1[-1])
+                    #print("[new] ue1 = ", u_e1_curr)
+                    #print("[new] alpha_e1 = ", alpha_e1_curr)
+                    #print("[curr] ue1 = ", param.u_e1[-1])
+                    #print("[curr] alpha_e1 = ", param.alpha_e1[-1])
 
                     # get Hermite projection matrix
-                    P, case = get_projection_matrix(u_s_curr=u_e1_curr, u_s=param.u_e1[-1], alpha_s_curr=alpha_e1_curr,
-                                                    alpha_s=param.alpha_e1[-1], Nx_total=param.Nx, Nv=param.Nv_e1,
+                    P, case = get_projection_matrix(u_s_curr=u_e1_curr,
+                                                    u_s=param.u_e1[-1],
+                                                    alpha_s_curr=alpha_e1_curr,
+                                                    alpha_s=param.alpha_e1[-1],
+                                                    Nx_total=param.Nx,
+                                                    Nv=param.Nv_e1,
                                                     alpha_s_tol=param.alpha_tol, u_s_tol=param.u_tol)
                     if case == 1:
-                        print("(e1) tolerance met for u and alpha")
+                        print("(e1) case #1 tolerance met for u and alpha")
                         # update parameters
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
                         param.replace_u_e1(u_e1_curr=u_e1_curr)
@@ -92,7 +101,7 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                                 param.update_psi_dual_va_vb()
 
                     elif case == 2:
-                        print("(e1) tolerance met for u")
+                        print("(e1) case #2 tolerance met for u")
                         param.replace_u_e1(u_e1_curr=u_e1_curr)
                         if MM1 or MM2:
                             param.update_IJ()
@@ -100,7 +109,7 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                                 param.update_psi_dual_va_vb()
 
                     elif case == 3:
-                        print("(e1) tolerance met for alpha")
+                        print("(e1) case #3 tolerance met for alpha")
                         param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
                         if MM1 or MM2:
                             param.update_IJ()
@@ -132,8 +141,8 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                                           alpha_s_curr=alpha_e2_curr, alpha_s=param.alpha_e2[-1],
                                           alpha_s_tol=param.alpha_tol):
                     print("updating u or alpha (electron 2)")
-                    print("ue2 = ", u_e2_curr)
-                    print("alpha_e2 = ", alpha_e2_curr)
+                    #print("ue2 = ", u_e2_curr)
+                    #print("alpha_e2 = ", alpha_e2_curr)
                     # get Hermite projection matrix
                     P, case = get_projection_matrix(u_s_curr=u_e2_curr, u_s=param.u_e2[-1], alpha_s_curr=alpha_e2_curr,
                                                     alpha_s=param.alpha_e2[-1], Nx_total=param.Nx, Nv=param.Nv_e2,

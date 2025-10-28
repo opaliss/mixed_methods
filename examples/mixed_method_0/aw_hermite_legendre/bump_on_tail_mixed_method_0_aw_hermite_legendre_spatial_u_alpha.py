@@ -25,8 +25,7 @@ def rhs(y):
                                                    alpha_e=setup.alpha_e1[-1],
                                                    v_a=setup.v_a, v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[
-                                                                 setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -34,8 +33,8 @@ def rhs(y):
     dydt_ = np.zeros(len(y))
 
     # evolving bulk aw_hermite
-    L_term = np.repeat(setup.u_e1[-1], setup.Nv_e1) * (setup.A_eH_diag @ y[:setup.Nv_e1 * setup.Nx]) \
-             + np.repeat(setup.alpha_e1[-1], setup.Nv_e1) * (setup.A_eH_off @ y[:setup.Nv_e1 * setup.Nx]) \
+    L_term = setup.A_eH_diag @ (np.tile(setup.u_e1[-1], reps=setup.Nv_e1) * y[:setup.Nv_e1 * setup.Nx]) \
+             + setup.A_eH_off @ (np.tile(setup.alpha_e1[-1], reps=setup.Nv_e1) * y[:setup.Nv_e1 * setup.Nx]) \
              + setup.nu_H * (setup.A_eH_col @ y[:setup.Nv_e1 * setup.Nx])
 
     N_term = nonlinear_aw_hermite(E=E, psi=y[:setup.Nv_e1 * setup.Nx],
@@ -48,14 +47,13 @@ def rhs(y):
     dudx = setup.D @ setup.u_e1[-1]
     dalphadx = setup.D @ setup.alpha_e1[-1]
 
-    M_term = np.repeat(dudx, setup.Nv_e1) * (setup.M1_du_dx @ y[:setup.Nv_e1 * setup.Nx]) \
-             + np.repeat(dudx * setup.u_e1[-1] / setup.alpha_e1[-1], setup.Nv_e1) * (
-                     setup.M2_du_dx @ y[:setup.Nv_e1 * setup.Nx]) \
-             + np.repeat(dalphadx, setup.Nv_e1) * (setup.M1_dalpha_dx @ y[:setup.Nv_e1 * setup.Nx]) \
-             + np.repeat(dalphadx * setup.u_e1[-1] / setup.alpha_e1[-1], setup.Nv_e1) * (
-                     setup.M2_dalpha_dx @ y[:setup.Nv_e1 * setup.Nx])
+    M_term_u = setup.M1_du_dx @ (np.tile(dudx, reps=setup.Nv_e1) * y[:setup.Nv_e1 * setup.Nx]) \
+                    + setup.M2_du_dx @ (np.tile(dudx * setup.u_e1[-1] / setup.alpha_e1[-1], reps=setup.Nv_e1) * y[:setup.Nv_e1 * setup.Nx])
 
-    dydt_[:setup.Nv_e1 * setup.Nx] = L_term + N_term + M_term
+    M_term_alpha = setup.M1_dalpha_dx @ (np.tile(dalphadx, reps=setup.Nv_e1) * y[:setup.Nv_e1 * setup.Nx])\
+                    + setup.M2_dalpha_dx @ (np.tile(dalphadx * setup.u_e1[-1] / setup.alpha_e1[-1], reps=setup.Nv_e1) * y[:setup.Nv_e1 * setup.Nx])
+
+    dydt_[:setup.Nv_e1 * setup.Nx] = L_term + N_term + M_term_u + M_term_alpha
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] + nonlinear_legendre(E=E, psi=y[
                                                                                                             setup.Nv_e1 * setup.Nx:],
@@ -74,28 +72,31 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod0(Nx=101,
-                                        Nv_e1=100,
-                                        Nv_e2=100,
+    setup = SimulationSetupMixedMethod0(Nx=51,
+                                        Nv_e1=101,
+                                        Nv_e2=50,
                                         epsilon=1e-2,
                                         v_a=-10,
                                         v_b=10,
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
                                         u_e2=4.5,
-                                        alpha_e2=1 / np.sqrt(2),
-                                        L=20 * np.pi / 3,
+                                        alpha_e2=1/np.sqrt(2),
+                                        L=20*np.pi/3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=4,
+                                        T=30,
                                         k0=1,
                                         nu_L=1,
-                                        nu_H=4,
+                                        nu_H=20,
                                         gamma=0.5,
-                                        u_tol=1e-1,
-                                        alpha_tol=1e-1,
+                                        u_tol=0.5,
+                                        alpha_tol=0.5,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
+                                        window_size=5,
+                                        u_filter_thresh=0.1,
+                                        alpha_filter_thresh=0.1,
                                         adaptive_in_space=True)
 
     # initial condition: read in result from previous simulation
@@ -137,26 +138,27 @@ if __name__ == "__main__":
     print("runtime cpu = ", end_time_cpu)
     print("runtime wall = ", end_time_wall)
 
+
     # save the runtime
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(
         setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
             np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) +
             "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("../../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)

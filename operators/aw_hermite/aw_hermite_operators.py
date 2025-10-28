@@ -105,9 +105,8 @@ def M1_du_dx(Nv, Nx):
     """
     A = np.zeros((Nv, Nv))
     for n in range(Nv):
-        if n != 0 and n != 1:
-            A[n, n - 2] = np.sqrt(n * (n - 1))
-        A[n, n] = (n + 1)
+        A[n, n - 2] = np.sqrt(n * (n - 1))
+        A[n, n] = n
     return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
 
 
@@ -120,9 +119,7 @@ def M2_du_dx(Nv, Nx):
     """
     A = np.zeros((Nv, Nv))
     for n in range(Nv):
-        if n != 0:
-            # lower diagonal
-            A[n, n - 1] = np.sqrt(2 * n)
+        A[n, n - 1] = np.sqrt(2 * n)
     return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
 
 
@@ -135,13 +132,10 @@ def M1_dalpha_dx(Nv, Nx):
     """
     A = np.zeros((Nv, Nv))
     for n in range(Nv):
-        if n != 0 and n != 1 and n != 2:
-            # lower diagonal
-            A[n, n - 3] = np.sqrt(n * (n - 1) * (n - 2) / 2)
+        A[n, n - 3] = np.sqrt(n * (n - 1) * (n - 2) / 2)
+        A[n, n - 1] = np.sqrt(2*n) * n
         if n != Nv - 1:
-            A[n, n + 1] = np.sqrt((n + 1) / 2) * (n + 2)
-        if n != 0:
-            A[n, n - 1] = np.sqrt(n / 2) * (2 * n + 1)
+            A[n, n + 1] = np.sqrt((n + 1) / 2) * (n + 1)
     return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
 
 
@@ -154,10 +148,8 @@ def M2_dalpha_dx(Nv, Nx):
     """
     A = np.zeros((Nv, Nv))
     for n in range(Nv):
-        if n != 0 and n != 1:
-            # lower diagonal
-            A[n, n - 2] = np.sqrt(n * (n - 1))
-        A[n, n] = n+1
+        A[n, n - 2] = np.sqrt(n * (n - 1))
+        A[n, n] = n + 1
     return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
 
 
@@ -181,7 +173,7 @@ def mass_aw_hermite(state):
     :param state: 1d array, electron or ion state
     :return: mass for the state
     """
-    return np.sum(state[0, :])
+    return state[0, :]
 
 
 def momentum_aw_hermite(state, u_s, alpha_s):
@@ -192,7 +184,7 @@ def momentum_aw_hermite(state, u_s, alpha_s):
     :param alpha_s: float, the velocity scaling parameter of species s
     :return: momentum for the state
     """
-    return alpha_s * np.sum(state[1, :]) / np.sqrt(2) + u_s * np.sum(state[0, :])
+    return alpha_s * state[1, :] / np.sqrt(2) + u_s * state[0, :]
 
 
 def energy_k_aw_hermite(state, u_s, alpha_s):
@@ -203,8 +195,8 @@ def energy_k_aw_hermite(state, u_s, alpha_s):
     :param alpha_s: float, the velocity scaling parameter of species s
     :return: kinetic energy for the state
     """
-    return (alpha_s ** 2) / np.sqrt(2) * np.sum(state[2, :]) + np.sqrt(2) * u_s * alpha_s * np.sum(state[1, :]) \
-           + (alpha_s ** 2 / 2 + u_s ** 2) * np.sum(state[0, :])
+    return (alpha_s ** 2) / np.sqrt(2) * state[2, :] + np.sqrt(2) * u_s * alpha_s * state[1, :] \
+           + ((alpha_s ** 2) / 2 + u_s ** 2) * state[0, :]
 
 
 def total_mass_aw_hermite(state, alpha_s, dx):
@@ -215,7 +207,7 @@ def total_mass_aw_hermite(state, alpha_s, dx):
     :param dx: float, spatial spacing
     :return: total mass of single electron and ion setup
     """
-    return mass_aw_hermite(state=state) * dx * alpha_s
+    return np.sum(mass_aw_hermite(state=state) * dx * alpha_s)
 
 
 def total_momentum_aw_hermite(state, alpha_s, dx, m_s, u_s):
@@ -228,7 +220,7 @@ def total_momentum_aw_hermite(state, alpha_s, dx, m_s, u_s):
     :param u_s: float, velocity shifting parameter of species s
     :return: total momentum of single electron and ion setup
     """
-    return momentum_aw_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
+    return np.sum(momentum_aw_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s)
 
 
 def total_energy_k_aw_hermite(state, alpha_s, dx, m_s, u_s):
@@ -241,7 +233,7 @@ def total_energy_k_aw_hermite(state, alpha_s, dx, m_s, u_s):
     :param u_s: float, velocity shifting parameter of species s
     :return: total kinetic energy of single electron and ion setup
     """
-    return 0.5 * energy_k_aw_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s
+    return 0.5 * np.sum(energy_k_aw_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s)
 
 
 def charge_density_two_stream_aw_hermite(q_e1, q_e2, q_i, alpha_e1, alpha_e2, alpha_i, C0_e1, C0_e2, C0_i):

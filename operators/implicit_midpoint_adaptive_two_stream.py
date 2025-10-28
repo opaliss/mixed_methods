@@ -6,7 +6,7 @@ Version: Oct 20th, 2025
 import numpy as np
 import scipy
 from operators.reprojection_between_hermite_and_legendre import reprojection_aw_hermite_and_legendre
-from operators.adaptive_aw_hermite import P_case_iii, check_if_update_needed, updated_u, updated_alpha, \
+from operators.adaptive_aw_hermite import P_case_i, check_if_update_needed, updated_u, updated_alpha, \
     get_projection_matrix
 
 
@@ -78,8 +78,8 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                                               C10=np.mean(y_sol[:, tt - 1][param.Nx: 2 * param.Nx]),
                                               C00=np.mean(y_sol[:, tt - 1][:param.Nx]))
 
-                P = P_case_iii(alpha_curr=alpha_e1_curr, alpha_prev=param.alpha_e1[-1],
-                               Nx_total=param.Nx, Nv=param.Nv)
+                P = P_case_i(alpha_curr=alpha_e1_curr, alpha_prev=param.alpha_e1[-1],
+                             Nv=param.Nv_e1, u_prev=param.u_e1[-1], u_curr=u_e1_curr)
 
                 param.replace_alpha_e1(alpha_e1_curr=alpha_e1_curr)
                 param.replace_u_e1(u_e1_curr=u_e1_curr)
@@ -88,8 +88,8 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                     if MM2:
                         param.update_psi_dual_va_vb()
 
-                y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx] = \
-                    P @ y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx]
+                y_sol[:, tt - 1][: param.Nv_e1*param.Nx] = \
+                    P @ y_sol[:, tt - 1][: param.Nv_e1*param.Nx]
 
                 print("re-projection is happening between hermite and Legendre formulations!")
                 # we update the simulation
