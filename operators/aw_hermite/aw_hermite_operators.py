@@ -96,6 +96,71 @@ def nonlinear_aw_hermite(E, psi, q, m, alpha, Nv, Nx):
     return res
 
 
+def M1_du_dx(Nv, Nx):
+    """M operator with all terms multiplying du/dx that exclude u/alpha
+
+    :param Nv: int, Hermite spectral resolution
+    :param Nx: int, grid size in space
+    :return:
+    """
+    A = np.zeros((Nv, Nv))
+    for n in range(Nv):
+        if n != 0 and n != 1:
+            A[n, n - 2] = np.sqrt(n * (n - 1))
+        A[n, n] = (n + 1)
+    return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
+
+
+def M2_du_dx(Nv, Nx):
+    """M operator with all terms multiplying du/dx including u/alpha
+
+    :param Nv: int, Hermite spectral resolution
+    :param Nx: int, grid size in space
+    :return:
+    """
+    A = np.zeros((Nv, Nv))
+    for n in range(Nv):
+        if n != 0:
+            # lower diagonal
+            A[n, n - 1] = np.sqrt(2 * n)
+    return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
+
+
+def M1_dalpha_dx(Nv, Nx):
+    """M operator with all terms multiplying dalpha/dx that exclude u/alpha
+
+    :param Nv: int, Hermite spectral resolution
+    :param Nx: int, grid size in space
+    :return:
+    """
+    A = np.zeros((Nv, Nv))
+    for n in range(Nv):
+        if n != 0 and n != 1 and n != 2:
+            # lower diagonal
+            A[n, n - 3] = np.sqrt(n * (n - 1) * (n - 2) / 2)
+        if n != Nv - 1:
+            A[n, n + 1] = np.sqrt((n + 1) / 2) * (n + 2)
+        if n != 0:
+            A[n, n - 1] = np.sqrt(n / 2) * (2 * n + 1)
+    return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
+
+
+def M2_dalpha_dx(Nv, Nx):
+    """M operator with all terms multiplying dalpha/dx that include u/alpha
+
+    :param Nv: int, Hermite spectral resolution
+    :param Nx: int, grid size in space
+    :return:
+    """
+    A = np.zeros((Nv, Nv))
+    for n in range(Nv):
+        if n != 0 and n != 1:
+            # lower diagonal
+            A[n, n - 2] = np.sqrt(n * (n - 1))
+        A[n, n] = n+1
+    return -scipy.sparse.kron(A, np.eye(Nx), format="csr")
+
+
 def charge_density_aw_hermite(q_e, q_i, alpha_e, alpha_i, C0_e, C0_i):
     """charge density (right hand side of Poisson equation)
 

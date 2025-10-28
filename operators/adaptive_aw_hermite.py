@@ -52,14 +52,13 @@ def b_constant(u_curr, u_prev, alpha_prev):
     return (u_curr - u_prev) / alpha_prev
 
 
-def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev, Nx_total, Nv):
+def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev,  Nv):
     """
 
     :param alpha_curr: float, updated alpha^{s}_{j}
     :param alpha_prev: float, previous alpha^{s}_{j-1}
     :param u_curr: float, updated u^{s}_{j}
     :param u_prev: float, previous u^{s}_{j}
-    :param Nx_total: int, total number of Fourier coefficients (2Nx+1 or Nx+1)
     :param Nv: int, total number of Hermite coefficients
     :return: projection matrix P (Nx_total Nv x Nx_total Nv)
     """
@@ -180,16 +179,15 @@ def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev, Nx_total, Nv):
         Jnm = Jnmp
         JJ = np.sum(Jnm, axis=1)
         P[m + 3:, m + 2] = JJ[m + 3:]
-    return scipy.sparse.kron(np.tril(P), np.eye(N=Nx_total), format="bsr")
+    return np.tril(P)
 
 
-def P_case_ii(alpha_prev, u_curr, u_prev, Nx_total, Nv):
+def P_case_ii(alpha_prev, u_curr, u_prev, Nv):
     """
 
     :param alpha_prev: float, previous alpha^{s}_{j-1}
     :param u_curr: float, updated u^{s}_{j}
     :param u_prev: float, previous u^{s}_{j}
-    :param Nx_total: int, total number of Fourier coefficients (2Nx+1 or Nx+1)
     :param Nv: int, total number of Hermite coefficients
     :return: projection matrix P (Nx_total Nv x Nx_total Nv)
     """
@@ -217,15 +215,14 @@ def P_case_ii(alpha_prev, u_curr, u_prev, Nx_total, Nv):
     for m in range(2, Nv):
         P[m:, m - 1] = -1 / np.sqrt(2) / b / np.sqrt(m - 1) * (np.arange(m, Nv) - m + 2) * P[m:, m - 2]
 
-    return scipy.sparse.kron(np.tril(P), np.eye(N=Nx_total), format="bsr")
+    return np.tril(P)
 
 
-def P_case_iii(alpha_curr, alpha_prev, Nx_total, Nv):
+def P_case_iii(alpha_curr, alpha_prev, Nv):
     """
 
     :param alpha_curr: float, updated alpha^{s}_{j}
     :param alpha_prev: float, previous alpha^{s}_{j-1}
-    :param Nx_total: int, total number of Fourier coefficients (2Nx+1 or Nx+1)
     :param Nv: int, total number of Hermite coefficients
     :return: projection matrix P (Nx_total Nv x Nx_total Nv)
     """
@@ -252,7 +249,7 @@ def P_case_iii(alpha_curr, alpha_prev, Nx_total, Nv):
     for m in range(1, Nv - 2):
         for n in range(3, Nv):
             P[n, m] = np.sqrt(n) / np.sqrt(m) / a * P[n - 1, m - 1]
-    return scipy.sparse.kron(np.tril(P), np.eye(N=Nx_total), format="bsr")
+    return np.tril(P)
 
 
 def check_if_update_needed(u_s_curr, u_s, u_s_tol, alpha_s_curr, alpha_s, alpha_s_tol):
@@ -266,17 +263,27 @@ def check_if_update_needed(u_s_curr, u_s, u_s_tol, alpha_s_curr, alpha_s, alpha_
     :param alpha_s_tol: float, alpha^{s}_{tol}
     :return: boolean (True/False)
     """
-    if np.abs(u_s - u_s_curr) >= u_s_tol:
-        return True
-    elif np.abs(alpha_s - alpha_s_curr) / alpha_s >= alpha_s_tol:
-        return True
+    if np.isscalar(u_s):
+        if np.abs(u_s - u_s_curr) >= u_s_tol:
+            return True
+        elif np.abs((alpha_s - alpha_s_curr) / alpha_s) >= alpha_s_tol:
+            return True
+        else:
+            return False
     else:
-        return False
+        if np.linalg.norm(u_s - u_s_curr, ord=2) >= u_s_tol:
+            return True
+        elif np.linalg.norm((alpha_s - alpha_s_curr) / alpha_s, ord=2) >= alpha_s_tol:
+            return True
+        else:
+            return False
 
 
 def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, alpha_s_tol, u_s_tol):
     """
 
+    :param alpha_s_tol:
+    :param u_s_tol:
     :param u_s_curr: float,  u^{s}_{j+1}
     :param u_s: float, U^{s}_{j}
     :param alpha_s_curr: float, alpha^{s}_{j+1}
@@ -285,19 +292,49 @@ def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, al
     :param Nv: int, total number of Hermite coefficients
     :return: projection matrix P (Nx_total Nv x Nx_total Nv)
     """
-    # case (i)
-    if np.abs(u_s_curr - u_s) >= u_s_tol and np.abs(alpha_s_curr - alpha_s) / alpha_s >= alpha_s_tol:
-        return P_case_i(alpha_curr=alpha_s_curr, alpha_prev=alpha_s,
-                        u_curr=u_s_curr, u_prev=u_s, Nx_total=Nx_total, Nv=Nv), 1
+    if np.isscalar(u_s):
+        # case (i)
+        if np.abs(u_s_curr - u_s) >= u_s_tol and np.abs((alpha_s_curr - alpha_s)/alpha_s) >= alpha_s_tol:
+            return scipy.sparse.kron(P_case_i(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nv=Nv), np.eye(N=Nx_total), format="bsr"), 1
 
-    # case (ii)
-    elif np.abs(u_s_curr - u_s) > u_s_tol and np.abs(alpha_s_curr - alpha_s)/alpha_s < alpha_s_tol:
-        return P_case_ii(alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nx_total=Nx_total, Nv=Nv), 2
+        # case (ii)
+        elif np.abs(u_s_curr - u_s) > u_s_tol and np.abs((alpha_s_curr - alpha_s)/alpha_s) <= alpha_s_tol:
+            return scipy.sparse.kron(P_case_ii(alpha_prev=alpha_s, u_curr=u_s_curr, u_prev=u_s, Nv=Nv), np.eye(N=Nx_total), format="bsr"), 2
 
-    # case (iii)
-    elif np.abs(u_s_curr - u_s) < u_s_tol and np.abs(alpha_s_curr - alpha_s)/alpha_s > alpha_s_tol:
-        return P_case_iii(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, Nx_total=Nx_total, Nv=Nv), 3
+        # case (iii)
+        elif np.abs(u_s_curr - u_s) < u_s_tol and np.abs((alpha_s_curr - alpha_s)/alpha_s) > alpha_s_tol:
+            return scipy.sparse.kron(P_case_iii(alpha_curr=alpha_s_curr, alpha_prev=alpha_s, Nv=Nv), np.eye(N=Nx_total), format="bsr"), 3
 
-    # no tolerance is met
+        # no tolerance is met
+        else:
+            return np.eye(Nv*Nx_total)
     else:
-        return np.eye(Nv*Nx_total)
+        # case (i)
+        if np.linalg.norm(u_s_curr - u_s, ord=2) >= u_s_tol and np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) >= alpha_s_tol:
+            holder = np.zeros((Nv*Nx_total, Nv*Nx_total))
+            for ii in range(Nx_total):
+                holder[ii::Nx_total, ii::Nx_total] = P_case_i(alpha_curr=alpha_s_curr[ii], alpha_prev=alpha_s[ii],
+                                                              u_curr=u_s_curr[ii], u_prev=u_s[ii], Nv=Nv)
+            return holder, 1
+
+        # case (ii)
+        elif np.linalg.norm(u_s_curr - u_s, ord=2) > u_s_tol and \
+                np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) < alpha_s_tol:
+            holder = np.zeros((Nv*Nx_total, Nv*Nx_total))
+            for ii in range(Nx_total):
+                holder[ii::Nx_total, ii::Nx_total] = P_case_ii(alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
+                                                               u_prev=u_s[ii], Nv=Nv)
+            return holder, 2
+
+        # case (iii)
+        elif np.linalg.norm(u_s_curr - u_s, ord=2) < u_s_tol and \
+                np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) > alpha_s_tol:
+            holder = np.zeros((Nv*Nx_total, Nv*Nx_total))
+            for ii in range(Nx_total):
+                holder[ii::Nx_total, ii::Nx_total] = P_case_iii(alpha_curr=alpha_s_curr[ii],
+                                                                alpha_prev=alpha_s[ii], Nv=Nv)
+            return holder, 3
+
+        # no tolerance is met
+        else:
+            return np.eye(Nv * Nx_total)

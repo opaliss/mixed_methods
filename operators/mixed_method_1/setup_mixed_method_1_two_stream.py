@@ -70,7 +70,10 @@ class SimulationSetupMixedMethod1:
         # excited wavenumber
         self.k0 = k0
         # re-projection parameters between the Hermite and Legendre formulations
-        self.cutoff = cutoff
+        if self.Nv_e1 > cutoff > 0:
+            self.cutoff = cutoff
+        else:
+            print("cutoff must be an integer greater than 0 and less than Nv_e1!")
         self.threshold_last_hermite = threshold_last_hermite
 
         # matrices

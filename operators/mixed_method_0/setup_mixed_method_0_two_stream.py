@@ -3,19 +3,19 @@
 ions are treated as stationary
 
 Author: Opal Issan (oissan@ucsd.edu)
-Last Update: June 9th, 2025
+Last Update: Oct 27th, 2025
 """
 
 import numpy as np
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
-from operators.aw_hermite.aw_hermite_operators import A1_hermite
+from operators.aw_hermite.aw_hermite_operators import A1_hermite, M1_du_dx, M2_du_dx, M1_dalpha_dx, M2_dalpha_dx
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H,
-                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0,
+                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0, adaptive_in_space=True,
                  Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
         # set up configuration parameters
@@ -92,6 +92,14 @@ class SimulationSetupMixedMethod0:
         for nn in range(self.Nv_e2):
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
+
+        if adaptive_in_space:
+            # terms that do not involve u/alpha
+            self.M1_du_dx = M1_du_dx(Nv=self.Nv_e1, Nx=self.Nx)
+            self.M1_dalpha_dx = M1_dalpha_dx(Nv=self.Nv_e1, Nx=self.Nx)
+            # terms that involve u/alpha
+            self.M2_du_dx = M2_du_dx(Nv=self.Nv_e1, Nx=self.Nx)
+            self.M2_dalpha_dx = M2_dalpha_dx(Nv=self.Nv_e1, Nx=self.Nx)
 
     def add_alpha_e1(self, alpha_e1_curr):
         self.alpha_e1.append(alpha_e1_curr)

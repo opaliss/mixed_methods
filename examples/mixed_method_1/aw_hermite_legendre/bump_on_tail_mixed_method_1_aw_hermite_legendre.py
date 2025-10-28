@@ -82,20 +82,20 @@ if __name__ == "__main__":
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=30,
+                                        T=40,
                                         nu_L=1,
-                                        nu_H=1,
+                                        nu_H=0,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
                                         u_e2=4.5,
                                         alpha_e2=1/np.sqrt(2),
                                         gamma=0.5,
                                         k0=1,
-                                        Nv_int=1000,
-                                        u_tol=1e-2,
-                                        alpha_tol=1e-2,
-                                        cutoff=5,
-                                        threshold_last_hermite=1e-1,
+                                        Nv_int=5000,
+                                        u_tol=1e-1,
+                                        alpha_tol=1e-1,
+                                        cutoff=3,
+                                        threshold_last_hermite=0.005,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
@@ -128,6 +128,7 @@ if __name__ == "__main__":
                                                                          bump_hermite_adapt=False,
                                                                          bulk_hermite_adapt=True,
                                                                          adaptive_u_and_alpha=True,
+                                                                         adaptive_between_hermite_and_legendre=True,
                                                                          MM1=True)
 
     end_time_cpu = time.process_time() - start_time_cpu

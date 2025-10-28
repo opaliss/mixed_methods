@@ -11,7 +11,8 @@ from operators.mixed_method_0.mixed_method_0_operators import charge_density_two
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
 from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_0.setup_mixed_method_0_two_stream import SimulationSetupMixedMethod0
-from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
+from operators.implicit_midpoint_adaptive_in_space_two_stream import \
+    implicit_midpoint_solver_adaptive_in_space_two_stream
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
@@ -33,16 +34,28 @@ def rhs(y):
     dydt_ = np.zeros(len(y))
 
     # evolving bulk aw_hermite
-    A_eH = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
+    L_term = np.repeat(setup.u_e1[-1], setup.Nv_e1) * (setup.A_eH_diag @ y[:setup.Nv_e1 * setup.Nx]) \
+             + np.repeat(setup.alpha_e1[-1], setup.Nv_e1) * (setup.A_eH_off @ y[:setup.Nv_e1 * setup.Nx]) \
+             + setup.nu_H * (setup.A_eH_col @ y[:setup.Nv_e1 * setup.Nx])
 
-    dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] + nonlinear_aw_hermite(E=E,
-                                                                                              psi=y[
-                                                                                               :setup.Nv_e1 * setup.Nx],
-                                                                                              q=setup.q_e,
-                                                                                              m=setup.m_e,
-                                                                                              alpha=setup.alpha_e1[-1],
-                                                                                              Nv=setup.Nv_e1,
-                                                                                              Nx=setup.Nx)
+    N_term = nonlinear_aw_hermite(E=E, psi=y[:setup.Nv_e1 * setup.Nx],
+                                  q=setup.q_e,
+                                  m=setup.m_e,
+                                  alpha=setup.alpha_e1[-1],
+                                  Nv=setup.Nv_e1,
+                                  Nx=setup.Nx)
+
+    dudx = setup.D @ setup.u_e1[-1]
+    dalphadx = setup.D @ setup.alpha_e1[-1]
+
+    M_term = np.repeat(dudx, setup.Nv_e1) * (setup.M1_du_dx @ y[:setup.Nv_e1 * setup.Nx]) \
+             + np.repeat(dudx * setup.u_e1[-1] / setup.alpha_e1[-1], setup.Nv_e1) * (
+                     setup.M2_du_dx @ y[:setup.Nv_e1 * setup.Nx]) \
+             + np.repeat(dalphadx, setup.Nv_e1) * (setup.M1_dalpha_dx @ y[:setup.Nv_e1 * setup.Nx]) \
+             + np.repeat(dalphadx * setup.u_e1[-1] / setup.alpha_e1[-1], setup.Nv_e1) * (
+                     setup.M2_dalpha_dx @ y[:setup.Nv_e1 * setup.Nx])
+
+    dydt_[:setup.Nv_e1 * setup.Nx] = L_term + N_term + M_term
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] + nonlinear_legendre(E=E, psi=y[
                                                                                                             setup.Nv_e1 * setup.Nx:],
@@ -70,11 +83,11 @@ if __name__ == "__main__":
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
                                         u_e2=4.5,
-                                        alpha_e2=1/np.sqrt(2),
+                                        alpha_e2=1 / np.sqrt(2),
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=40,
+                                        T=4,
                                         k0=1,
                                         nu_L=1,
                                         nu_H=4,
@@ -82,7 +95,8 @@ if __name__ == "__main__":
                                         u_tol=1e-1,
                                         alpha_tol=1e-1,
                                         n0_e1=0.9,
-                                        n0_e2=0.1)
+                                        n0_e2=0.1,
+                                        adaptive_in_space=True)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
@@ -94,26 +108,28 @@ if __name__ == "__main__":
     x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
+        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2 ** 2)) / setup.alpha_e2
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
-                    nn + 1) * setup.Nx] = x_component * v_component
+                nn + 1) * setup.Nx] = x_component * v_component
+
+    setup.alpha_e1[-1] = setup.alpha_e1[-1] * np.ones(setup.Nx)
+    setup.u_e1[-1] = setup.u_e1[-1] * np.ones(setup.Nx)
 
     # start timer
     start_time_cpu = time.process_time()
     start_time_wall = time.time()
 
     # integrate (implicit midpoint)
-    sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_two_stream(y_0=y0,
-                                                                         right_hand_side=rhs,
-                                                                         a_tol=1e-10,
-                                                                         r_tol=1e-10,
-                                                                         max_iter=100,
-                                                                         param=setup,
-                                                                         adaptive_u_and_alpha=True,
-                                                                         bulk_hermite_adapt=True,
-                                                                         bump_hermite_adapt=False,
-                                                                         adaptive_between_hermite_and_legendre=False)
+    sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_in_space_two_stream(y_0=y0,
+                                                                                  right_hand_side=rhs,
+                                                                                  a_tol=1e-10,
+                                                                                  r_tol=1e-10,
+                                                                                  max_iter=100,
+                                                                                  param=setup,
+                                                                                  adaptive_u_and_alpha=True,
+                                                                                  bulk_hermite_adapt=True,
+                                                                                  bump_hermite_adapt=False)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall
@@ -122,8 +138,10 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-            setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+    np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(
+        setup.Nv_e1) + "_NvL_" + str(
+        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
+            np.array([end_time_cpu, end_time_wall]))
 
     # save results
     np.save("../../data/mixed_method_0_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
