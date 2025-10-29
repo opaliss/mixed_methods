@@ -62,11 +62,11 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod0(Nx=51,
-                                        Nv_e1=50,
-                                        Nv_e2=50,
+                                        Nv_e1=100,
+                                        Nv_e2=150,
                                         epsilon=1e-2,
-                                        v_a=-10,
-                                        v_b=10,
+                                        v_a=-8.5,
+                                        v_b=8.5,
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
                                         u_e2=4.5,
@@ -77,15 +77,15 @@ if __name__ == "__main__":
                                         T=40,
                                         k0=1,
                                         nu_L=1,
-                                        nu_H=4,
+                                        nu_H=0,
                                         gamma=0.5,
                                         u_tol=1e-1,
                                         alpha_tol=1e-1,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
-                                        threshold_last_hermite=0.001,
+                                        threshold_last_hermite=1e-4,
                                         construct_integrals=True,
-                                        cutoff=5)
+                                        cutoff=3)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)

@@ -5,7 +5,7 @@ Version: Oct 20th, 2025
 """
 import numpy as np
 import scipy
-from operators.reprojection_between_hermite_and_legendre import reprojection_aw_hermite_and_legendre
+from operators.reprojection_between_hermite_and_legendre import reprojection_adaptive_in_space_aw_hermite_and_legendre
 from operators.adaptive_aw_hermite import P_case_iii, check_if_update_needed, updated_u, updated_alpha, \
     get_projection_matrix
 from operators.implicit_midpoint_adaptive_two_stream import implicit_nonlinear_equation
@@ -13,8 +13,10 @@ from operators.implicit_midpoint_adaptive_two_stream import implicit_nonlinear_e
 
 def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, param, r_tol=1e-8,
                                                           a_tol=1e-15, max_iter=100,
-                                                 bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False, MM2=False,
-                                                 adaptive_u_and_alpha=True):
+                                                          bump_hermite_adapt=True, bulk_hermite_adapt=True, MM1=False,
+                                                          MM2=False, MM0=False,
+                                                          adaptive_u_and_alpha=True,
+                                                          adaptive_between_hermite_and_legendre=True):
     """Solve the system
 
         dy/dt = rhs(y),    y(0) = y0,
@@ -58,15 +60,13 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 u_e1_curr = updated_u(u_prev=param.u_e1[-1],
                                       alpha_prev=param.alpha_e1[-1],
                                       C00=y_sol[:, tt - 1][:param.Nx],
-                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx], D=param.D, window_size=param.window_size,
-                                      u_filter_thresh=param.u_filter_thresh)
+                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx])
 
                 # updated alpha (electron 1) parameter
                 alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
                                               C20=y_sol[:, tt - 1][2 * param.Nx: 3 * param.Nx],
                                               C10=y_sol[:, tt - 1][param.Nx: 2 * param.Nx],
-                                              C00=y_sol[:, tt - 1][:param.Nx], D=param.D, window_size=param.window_size,
-                                              alpha_filter_thresh=param.alpha_filter_thresh)
+                                              C00=y_sol[:, tt - 1][:param.Nx])
 
                 # electron 1 check mark
                 if check_if_update_needed(u_s_curr=u_e1_curr,
@@ -77,11 +77,6 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                                           alpha_s_tol=param.alpha_tol):
 
                     print("updating u or alpha (electron 1)")
-                    #print("[new] ue1 = ", u_e1_curr)
-                    #print("[new] alpha_e1 = ", alpha_e1_curr)
-                    #print("[curr] ue1 = ", param.u_e1[-1])
-                    #print("[curr] alpha_e1 = ", param.alpha_e1[-1])
-
                     # get Hermite projection matrix
                     P, case = get_projection_matrix(u_s_curr=u_e1_curr,
                                                     u_s=param.u_e1[-1],
@@ -128,21 +123,25 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 u_e2_curr = updated_u(u_prev=param.u_e2[-1],
                                       alpha_prev=param.alpha_e2[-1],
                                       C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx],
-                                      C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx])
+                                      C10=y_sol[:, tt - 1][
+                                          param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx])
 
                 # update alpha (electron 2) parameter
                 alpha_e2_curr = updated_alpha(alpha_prev=param.alpha_e2[-1],
-                                              C20=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + 2 * param.Nx: param.Nv_e1 * param.Nx + 3 * param.Nx],
-                                              C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx],
-                                              C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx])
+                                              C20=y_sol[:, tt - 1][
+                                                  param.Nv_e1 * param.Nx + 2 * param.Nx: param.Nv_e1 * param.Nx + 3 * param.Nx],
+                                              C10=y_sol[:, tt - 1][
+                                                  param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx],
+                                              C00=y_sol[:, tt - 1][
+                                                  param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx])
 
                 # electron 2 check mark
                 if check_if_update_needed(u_s_curr=u_e2_curr, u_s=param.u_e2[-1], u_s_tol=param.u_tol,
                                           alpha_s_curr=alpha_e2_curr, alpha_s=param.alpha_e2[-1],
                                           alpha_s_tol=param.alpha_tol):
                     print("updating u or alpha (electron 2)")
-                    #print("ue2 = ", u_e2_curr)
-                    #print("alpha_e2 = ", alpha_e2_curr)
+                    # print("ue2 = ", u_e2_curr)
+                    # print("alpha_e2 = ", alpha_e2_curr)
                     # get Hermite projection matrix
                     P, case = get_projection_matrix(u_s_curr=u_e2_curr, u_s=param.u_e2[-1], alpha_s_curr=alpha_e2_curr,
                                                     alpha_s=param.alpha_e2[-1], Nx_total=param.Nx, Nv=param.Nv_e2,
@@ -168,6 +167,22 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 # update parameters electron 2
                 param.add_alpha_e2(alpha_e2_curr=param.alpha_e2[-1])
                 param.add_u_e2(u_e2_curr=param.u_e2[-1])
+
+        if adaptive_between_hermite_and_legendre:
+            if np.max(y_sol[:, tt - 1][param.Nv_e1 * param.Nx - param.Nx:param.Nv_e1 * param.Nx]) \
+                    >= param.threshold_last_hermite:
+                print("re-projection is happening between hermite and Legendre formulations!")
+                if MM0:
+                    param.update_J()
+                # we update the simulation
+                y_sol[:, tt - 1] = reprojection_adaptive_in_space_aw_hermite_and_legendre(cutoff=param.cutoff,
+                                                                                          Nx=param.Nx,
+                                                                                          Nv_e1=param.Nv_e1,
+                                                                                          Nv_e2=param.Nv_e2,
+                                                                                          y_curr=y_sol[:, tt - 1],
+                                                                                          v_a=param.v_a,
+                                                                                          v_b=param.v_b,
+                                                                                          J=param.J_int)
 
         y_sol[:, tt] = scipy.optimize.newton_krylov(F=lambda y: implicit_nonlinear_equation(y_new=y,
                                                                                             y_old=y_sol[:, tt - 1],

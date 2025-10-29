@@ -7,7 +7,7 @@ import numpy as np
 import scipy
 
 
-def updated_alpha(alpha_prev, C20, C10, C00, D=np.nan, alpha_filter_thresh=0.1, window_size=5):
+def updated_alpha(alpha_prev, C20, C10, C00):
     """
 
     :param C00: float, the average zeroth moment
@@ -17,15 +17,10 @@ def updated_alpha(alpha_prev, C20, C10, C00, D=np.nan, alpha_filter_thresh=0.1, 
     :return: alpha at the updated iteration alpha^{s}_{j}
     """
     solution = alpha_prev * np.sqrt(1 + np.sqrt(2) * C20 / C00 - (C10 / C00) ** 2)
-    if not np.isscalar(solution):
-        # smooth it if needed
-        dalphadx = D @ solution
-        if np.var(dalphadx) > alpha_filter_thresh:
-            print("smoothing alpha")
     return solution
 
 
-def updated_u(u_prev, alpha_prev, C00, C10, D=np.nan, u_filter_thresh=0.1, window_size=5):
+def updated_u(u_prev, alpha_prev, C00, C10):
     """
 
     :param u_prev: float, previous iterative u^{s}_{j-1} parameter
@@ -35,11 +30,6 @@ def updated_u(u_prev, alpha_prev, C00, C10, D=np.nan, u_filter_thresh=0.1, windo
     :return: u at the updated iteration u^{s}_{j}
     """
     solution = u_prev + alpha_prev * C10 / C00 / np.sqrt(2)
-    if not np.isscalar(solution):
-        dudx = D @ solution
-        if np.var(dudx) > u_filter_thresh:
-            print("smoothing u")
-            solution = np.convolve(solution, np.ones(window_size) / window_size)
     return solution
 
 
@@ -324,7 +314,7 @@ def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, al
 
         # no tolerance is met
         else:
-            return np.eye(Nv * Nx_total)
+            return np.eye(Nv * Nx_total), 0
     else:
         # case (i)
         if np.linalg.norm(u_s_curr - u_s, ord=2) >= u_s_tol \
@@ -365,4 +355,4 @@ def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, al
 
         # no tolerance is met
         else:
-            return np.eye(Nv * Nx_total)
+            return np.eye(Nv * Nx_total), 0

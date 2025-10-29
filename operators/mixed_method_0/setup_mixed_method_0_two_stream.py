@@ -17,8 +17,9 @@ from operators.finite_difference import ddx_central
 
 class SimulationSetupMixedMethod0:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H,
-                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0, adaptive_in_space=True, window_size=5,
-                 u_filter_thresh=np.inf, construct_integrals=False,
+                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0,
+                 adaptive_in_space=True, window_size=5,
+                 u_filter_thresh=np.inf, construct_integrals=True,
                  alpha_filter_thresh=np.inf, threshold_last_hermite=np.inf, cutoff=np.inf,
                  Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None):
         # velocity grid
@@ -113,8 +114,7 @@ class SimulationSetupMixedMethod0:
 
         if construct_integrals:
             self.J_int = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
-            self.I_int_complement = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
-            self.update_IJ()
+            self.update_J()
 
     def add_alpha_e1(self, alpha_e1_curr):
         self.alpha_e1.append(alpha_e1_curr)
@@ -128,24 +128,31 @@ class SimulationSetupMixedMethod0:
     def replace_u_e1(self, u_e1_curr):
         self.u_e1[-1] = u_e1_curr
 
-    def update_IJ(self):
+    def update_J(self):
         v_ = np.linspace(self.v_a, self.v_b, self.Nv_int, endpoint=True)
-        for nn in range(self.Nv_e1 + 1):
-            for mm in range(self.Nv_e2):
-                if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
-                    self.J_int[nn, mm] = 0
-                    self.I_int_complement[nn, mm] = 0
-                elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
-                    self.J_int[nn, mm] = 0
-                    self.I_int_complement[nn, mm] = 0
-                else:
-                    self.J_int[nn, mm] = scipy.integrate.trapezoid(
-                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
-                        * aw_psi_hermite(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
-                        x=v_, dx=np.abs(v_[1] - v_[0]))
-
-                    self.I_int_complement[nn, mm] = scipy.integrate.trapezoid(
-                        xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
-                        * aw_psi_hermite_complement(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
-                        x=v_, dx=np.abs(v_[1] - v_[0]))
-
+        if isinstance(self.alpha_e1[-1], float):
+            for nn in range(self.Nv_e1 + 1):
+                for mm in range(self.Nv_e2):
+                    if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
+                        self.J_int[nn, mm] = 0
+                    elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
+                        self.J_int[nn, mm] = 0
+                    else:
+                        self.J_int[nn, mm] = scipy.integrate.trapezoid(
+                            xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                            * aw_psi_hermite(n=nn, alpha_s=self.alpha_e1[-1], u_s=self.u_e1[-1], v=v_),
+                            x=v_, dx=np.abs(v_[1] - v_[0]))
+        elif isinstance(self.alpha_e1[-1], np.ndarray):
+            self.J_int = np.zeros((self.Nv_e1 + 1, self.Nv_e2, self.Nx))
+            for ii in range(self.Nx):
+                for nn in range(self.Nv_e1 + 1):
+                    for mm in range(self.Nv_e2):
+                        if (mm % 2 == 0) and (nn % 2 == 1) and self.v_a == -self.v_b:
+                            self.J_int[nn, mm, ii] = 0
+                        elif (mm % 2 == 1) and (nn % 2 == 0) and self.v_a == -self.v_b:
+                            self.J_int[nn, mm, ii] = 0
+                        else:
+                            self.J_int[nn, mm, ii] = scipy.integrate.trapezoid(
+                                xi_legendre(n=mm, v=v_, v_a=self.v_a, v_b=self.v_b)
+                                * aw_psi_hermite(n=nn, alpha_s=self.alpha_e1[-1][ii], u_s=self.u_e1[-1][ii], v=v_),
+                                x=v_, dx=np.abs(v_[1] - v_[0]))

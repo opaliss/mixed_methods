@@ -72,12 +72,12 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod0(Nx=51,
-                                        Nv_e1=101,
+    setup = SimulationSetupMixedMethod0(Nx=101,
+                                        Nv_e1=5,
                                         Nv_e2=50,
                                         epsilon=1e-2,
-                                        v_a=-10,
-                                        v_b=10,
+                                        v_a=-8.5,
+                                        v_b=8.5,
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
                                         u_e2=4.5,
@@ -85,19 +85,20 @@ if __name__ == "__main__":
                                         L=20*np.pi/3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=30,
+                                        T=25,
                                         k0=1,
                                         nu_L=1,
-                                        nu_H=20,
+                                        nu_H=4,
                                         gamma=0.5,
-                                        u_tol=0.5,
-                                        alpha_tol=0.5,
+                                        u_tol=1.2,
+                                        alpha_tol=1.2,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
-                                        window_size=5,
-                                        u_filter_thresh=0.1,
-                                        alpha_filter_thresh=0.1,
-                                        adaptive_in_space=True)
+                                        threshold_last_hermite=0.001,
+                                        cutoff=3,
+                                        Nv_int=1000,
+                                        adaptive_in_space=True,
+                                        construct_integrals=True)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
@@ -116,7 +117,7 @@ if __name__ == "__main__":
 
     setup.alpha_e1[-1] = setup.alpha_e1[-1] * np.ones(setup.Nx)
     setup.u_e1[-1] = setup.u_e1[-1] * np.ones(setup.Nx)
-
+    setup.update_J()
     # start timer
     start_time_cpu = time.process_time()
     start_time_wall = time.time()
@@ -130,7 +131,9 @@ if __name__ == "__main__":
                                                                                   param=setup,
                                                                                   adaptive_u_and_alpha=True,
                                                                                   bulk_hermite_adapt=True,
-                                                                                  bump_hermite_adapt=False)
+                                                                                  bump_hermite_adapt=False,
+                                                                                  MM0=True,
+                                                                                  adaptive_between_hermite_and_legendre=False)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall
