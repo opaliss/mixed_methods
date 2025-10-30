@@ -236,7 +236,7 @@ def total_energy_k_aw_hermite(state, alpha_s, dx, m_s, u_s):
     return 0.5 * np.sum(energy_k_aw_hermite(state=state, alpha_s=alpha_s, u_s=u_s) * dx * alpha_s * m_s)
 
 
-def charge_density_two_stream_aw_hermite(q_e1, q_e2, q_i, alpha_e1, alpha_e2, alpha_i, C0_e1, C0_e2, C0_i):
+def charge_density_two_stream_aw_hermite(alpha_e1, alpha_e2, alpha_i, C0_e1, C0_e2, C0_i, q_e1=-1, q_e2=-1, q_i=1):
     """charge density (right hand side of Poisson equation)
 
     :param q_e1: float, charge of electrons species 1

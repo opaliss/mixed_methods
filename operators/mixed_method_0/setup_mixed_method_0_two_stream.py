@@ -10,14 +10,17 @@ import numpy as np
 import scipy
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
 from operators.aw_hermite.aw_hermite_operators import A1_hermite, M1_du_dx, M2_du_dx, M1_dalpha_dx, M2_dalpha_dx, \
-    aw_psi_hermite, aw_psi_hermite_complement
+    aw_psi_hermite
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
-    def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T, nu_H,
-                 nu_L, n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0,
+    def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T,
+                n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0,
+                 nu_L=0, nu_H=0,
+                 v_a=-np.inf, v_b=np.inf,
+                 alpha_i=np.sqrt(2 / 1836),
                  adaptive_in_space=True, window_size=5,
                  u_filter_thresh=np.inf, construct_integrals=True,
                  alpha_filter_thresh=np.inf, threshold_last_hermite=np.inf, cutoff=np.inf,
@@ -43,8 +46,9 @@ class SimulationSetupMixedMethod0:
         # aw_hermite scaling and shifting parameters
         self.alpha_e1 = [alpha_e1]
         self.u_e1 = [u_e1]
-        self.alpha_e2 = alpha_e2
-        self.u_e2 = u_e2
+        self.alpha_e2 = [alpha_e2]
+        self.u_e2 = [u_e2]
+        self.alpha_i = [alpha_i]
         # penalty magnitude
         self.gamma = gamma
         # x grid is from 0 to L
@@ -79,6 +83,8 @@ class SimulationSetupMixedMethod0:
         self.alpha_filter_thresh = alpha_filter_thresh
         self.cutoff = cutoff
         self.threshold_last_hermite = threshold_last_hermite
+        self.construct_integrals = construct_integrals
+        self.adaptive_in_space = adaptive_in_space
 
         # matrices
         # finite difference derivative matrix
@@ -104,7 +110,7 @@ class SimulationSetupMixedMethod0:
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)
 
-        if adaptive_in_space:
+        if self.adaptive_in_space:
             # terms that do not involve u/alpha
             self.M1_du_dx = M1_du_dx(Nv=self.Nv_e1, Nx=self.Nx)
             self.M1_dalpha_dx = M1_dalpha_dx(Nv=self.Nv_e1, Nx=self.Nx)
@@ -112,7 +118,7 @@ class SimulationSetupMixedMethod0:
             self.M2_du_dx = M2_du_dx(Nv=self.Nv_e1, Nx=self.Nx)
             self.M2_dalpha_dx = M2_dalpha_dx(Nv=self.Nv_e1, Nx=self.Nx)
 
-        if construct_integrals:
+        if self.construct_integrals:
             self.J_int = np.zeros((self.Nv_e1 + 1, self.Nv_e2))
             self.update_J()
 
@@ -127,6 +133,18 @@ class SimulationSetupMixedMethod0:
 
     def replace_u_e1(self, u_e1_curr):
         self.u_e1[-1] = u_e1_curr
+
+    def add_alpha_e2(self, alpha_e2_curr):
+        self.alpha_e2.append(alpha_e2_curr)
+
+    def add_u_e2(self, u_e2_curr):
+        self.u_e2.append(u_e2_curr)
+
+    def replace_alpha_e2(self, alpha_e2_curr):
+        self.alpha_e2[-1] = alpha_e2_curr
+
+    def replace_u_e2(self, u_e2_curr):
+        self.u_e2[-1] = u_e2_curr
 
     def update_J(self):
         v_ = np.linspace(self.v_a, self.v_b, self.Nv_int, endpoint=True)

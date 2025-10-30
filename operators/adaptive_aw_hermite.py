@@ -5,9 +5,10 @@ Date: Oct 24th, 2025
 """
 import numpy as np
 import scipy
+from scipy.ndimage import gaussian_filter1d
 
 
-def updated_alpha(alpha_prev, C20, C10, C00):
+def updated_alpha(alpha_prev, C20, C10, C00, sigma=np.nan):
     """
 
     :param C00: float, the average zeroth moment
@@ -17,10 +18,13 @@ def updated_alpha(alpha_prev, C20, C10, C00):
     :return: alpha at the updated iteration alpha^{s}_{j}
     """
     solution = alpha_prev * np.sqrt(1 + np.sqrt(2) * C20 / C00 - (C10 / C00) ** 2)
+    if isinstance(solution, float) is False:
+        if sigma != 0 and sigma != np.nan:
+            solution = gaussian_filter1d(solution, sigma=sigma, mode="wrap")
     return solution
 
 
-def updated_u(u_prev, alpha_prev, C00, C10):
+def updated_u(u_prev, alpha_prev, C00, C10, sigma=np.nan):
     """
 
     :param u_prev: float, previous iterative u^{s}_{j-1} parameter
@@ -30,6 +34,9 @@ def updated_u(u_prev, alpha_prev, C00, C10):
     :return: u at the updated iteration u^{s}_{j}
     """
     solution = u_prev + alpha_prev * C10 / C00 / np.sqrt(2)
+    if isinstance(solution, float) is False:
+        if sigma != 0 and sigma != np.nan:
+            solution = gaussian_filter1d(solution, sigma=sigma, mode="wrap")
     return solution
 
 
@@ -80,7 +87,7 @@ def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev, Nv):
     Inm, Jnm = np.zeros((Nv, Nv)), np.zeros((Nv, Nv))
     Inm[0, 0] = 1 / a
     Jnm[1, 1] = 1 / a_square
-    P[0, 0] = 1 / a
+    P = np.diag(1. / (a ** np.arange(1, Nv + 1)))
 
     """
     for j=1:N-1
@@ -91,8 +98,8 @@ def P_case_i(alpha_curr, alpha_prev, u_curr, u_prev, Nv):
     end
     Jnm = Jnm(1:N,:);
     """
+
     for jj in range(1, Nv):
-        P[jj, jj] = 1 / a * P[jj - 1, jj - 1]
         n = jj - 1
         Inm[n + 1, 0] = np.sqrt((n + 1) / 2) / (n + 1) * (-2 * b / a) * Inm[n, 0]
         if jj < Nv - 1:
@@ -266,27 +273,28 @@ def check_if_update_needed(u_s_curr, u_s, u_s_tol, alpha_s_curr, alpha_s, alpha_
     :return: boolean (True/False)
     """
     if np.isscalar(u_s):
-        if np.abs(u_s - u_s_curr) >= u_s_tol:
+        if np.abs(u_s - u_s_curr) / alpha_s >= u_s_tol:
             return True
         elif np.abs((alpha_s - alpha_s_curr) / alpha_s) >= alpha_s_tol:
             return True
         else:
             return False
     else:
-        if np.linalg.norm(u_s - u_s_curr, ord=2) >= u_s_tol:
+        u_diff_array = u_s - u_s_curr
+        alpha_diff_array = (alpha_s - alpha_s_curr) / alpha_s
+        if any(u_diff > u_s_tol for u_diff in u_diff_array):
             return True
-        elif np.linalg.norm((alpha_s - alpha_s_curr) / alpha_s, ord=2) >= alpha_s_tol:
+        elif any(alpha_diff > alpha_s_tol for alpha_diff in alpha_diff_array):
             return True
         else:
             return False
 
 
-def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, alpha_s_tol, u_s_tol, epsilon=1e-8):
+def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, alpha_s_tol, u_s_tol, koshkarov=True):
     """
 
     :param alpha_s_tol:
     :param u_s_tol:
-    :param epsilon: default is 1E-8
     :param u_s_curr: float,  u^{s}_{j+1}
     :param u_s: float, U^{s}_{j}
     :param alpha_s_curr: float, alpha^{s}_{j+1}
@@ -316,43 +324,114 @@ def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, al
         else:
             return np.eye(Nv * Nx_total), 0
     else:
-        # case (i)
-        if np.linalg.norm(u_s_curr - u_s, ord=2) >= u_s_tol \
-                and np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) >= alpha_s_tol:
-            holder = np.zeros((Nv * Nx_total, Nv * Nx_total))
-            for ii in range(Nx_total):
-                if np.abs(u_s_curr[ii] - u_s[ii]) < epsilon or np.abs(alpha_s_curr[ii] - alpha_s[ii]) < epsilon:
-                    holder[ii::Nx_total, ii::Nx_total] = np.eye(Nv)
-                else:
-                    holder[ii::Nx_total, ii::Nx_total] = P_case_i(alpha_curr=alpha_s_curr[ii],
-                                                                  alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
-                                                                  u_prev=u_s[ii], Nv=Nv)
-            return holder, 1
-
-        # case (ii)
-        elif np.linalg.norm(u_s_curr - u_s, ord=2) > u_s_tol and \
-                np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) < alpha_s_tol:
-            holder = np.zeros((Nv * Nx_total, Nv * Nx_total))
-            for ii in range(Nx_total):
-                if np.abs(u_s_curr[ii] - u_s[ii]) < epsilon:
-                    holder[ii::Nx_total, ii::Nx_total] = np.eye(Nv)
-                else:
-                    holder[ii::Nx_total, ii::Nx_total] = P_case_ii(alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
-                                                                   u_prev=u_s[ii], Nv=Nv)
-            return holder, 2
-
-        # case (iii)
-        elif np.linalg.norm(u_s_curr - u_s, ord=2) < u_s_tol and \
-                np.linalg.norm((alpha_s_curr - alpha_s) / alpha_s, ord=2) > alpha_s_tol:
-            holder = np.zeros((Nv * Nx_total, Nv * Nx_total))
-            for ii in range(Nx_total):
-                if np.abs(alpha_s_curr[ii] - alpha_s[ii]) < epsilon:
-                    holder[ii::Nx_total, ii::Nx_total] = np.eye(Nv)
-                else:
-                    holder[ii::Nx_total, ii::Nx_total] = P_case_iii(alpha_curr=alpha_s_curr[ii], alpha_prev=alpha_s[ii],
-                                                                    Nv=Nv)
-            return holder, 3
-
-        # no tolerance is met
+        u_diff_array = u_s - u_s_curr
+        alpha_diff_array = (alpha_s - alpha_s_curr) / alpha_s
+        if any(u_diff > u_s_tol for u_diff in u_diff_array) and any(
+                alpha_diff > alpha_s_tol for alpha_diff in alpha_diff_array):
+            flag = 1
+        elif any(u_diff > u_s_tol for u_diff in u_diff_array):
+            flag = 2
+        elif any(alpha_diff > alpha_s_tol for alpha_diff in alpha_diff_array):
+            flag = 3
         else:
-            return np.eye(Nv * Nx_total), 0
+            flag = 0
+        P_total = np.zeros((Nv * Nx_total, Nv * Nx_total))
+        for ii in range(Nx_total):
+            if koshkarov:
+                if flag == 1:
+                    a = a_constant(alpha_curr=alpha_s_curr[ii], alpha_prev=alpha_s[ii])
+                    b = b_constant(alpha_prev=alpha_s[ii], u_prev=u_s[ii], u_curr=u_s_curr[ii])
+                    P_total[ii::Nx_total, ii::Nx_total] = proj_1d_Koshkarov(a=a, b=b, Nn=Nv)
+                elif flag == 2:
+                    a = a_constant(alpha_curr=alpha_s[ii], alpha_prev=alpha_s[ii])
+                    b = b_constant(alpha_prev=alpha_s[ii], u_prev=u_s[ii], u_curr=u_s_curr[ii])
+                elif flag == 3:
+                    a = a_constant(alpha_curr=alpha_s_curr[ii], alpha_prev=alpha_s[ii])
+                    b = b_constant(alpha_prev=alpha_s[ii], u_prev=u_s[ii], u_curr=u_s[ii])
+                P_total[ii::Nx_total, ii::Nx_total] = proj_1d_Koshkarov(a=a, b=b, Nn=Nv)
+                if abs(b) < 1e-16 and abs(a - 1.0) < 1e-16:
+                    print("a = ", a)
+                    print("b = ", b)
+                    u_s_curr[ii] = u_s_curr[ii]
+                    alpha_s_curr[ii] = alpha_s[ii]
+
+            else:
+                # case (i)
+                if flag == 1:
+                    P_total[ii::Nx_total, ii::Nx_total] = P_case_i(alpha_curr=alpha_s_curr[ii],
+                                                                   alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
+                                                                   u_prev=u_s[ii], Nv=Nv)
+                # case (ii)
+                elif flag == 2:
+
+                    P_total[ii::Nx_total, ii::Nx_total] = P_case_ii(alpha_prev=alpha_s[ii], u_curr=u_s_curr[ii],
+                                                                    u_prev=u_s[ii], Nv=Nv)
+
+                # case (iii)
+                elif flag == 3:
+                    P_total[ii::Nx_total, ii::Nx_total] = P_case_iii(alpha_curr=alpha_s_curr[ii],
+                                                                     alpha_prev=alpha_s[ii],
+                                                                     Nv=Nv)
+
+                # no tolerance is met == >
+                # but this should never happen because this function is only called when a tol is met.
+                elif flag == 0:
+                    print("no tolerance is met for ii = ", ii)
+                    u_s_curr[ii] = u_s[ii]
+                    alpha_s_curr[ii] = alpha_s[ii]
+        return P_total, flag, u_s_curr, alpha_s_curr
+
+
+def proj_1d_Koshkarov(a, b, Nn):
+    Pnn = np.zeros((Nn, Nn))
+    for n in range(Nn):
+        for m in range(Nn):
+            if n == m:
+                Pnn[n, m] = 1 / a ** (n + 1)
+
+            elif n > m:  # lower diagonal
+
+                if (abs(b) < 1e-16 and abs(a - 1.0) < 1e-16):
+                    return np.eye(Nn)  # return 1 on diagonal?
+                # elif (abs(b) < 1e-16):
+                elif abs(b) <1e-16:
+
+                    el = 1 / a
+                    if ((n - m) % 2 != 0):
+                        continue
+                    for i in range(2, n - m + 1, 2):
+                        el *= np.sqrt((i - 1.0) / (1.0 * i)) * (1.0 / (a * a) - 1.0)
+                    for j in range(1, m + 1):
+                        el *= np.sqrt((1.0 * (j + (n - m))) / (1.0 * j)) / a
+                    Pnn[n, m] = el
+                # elif (abs(a - 1.0) < 1e-16):
+                elif abs(a - 1.0) < 1e-16:
+                    el = 1.0
+
+                    for i in range(1, n + 1):
+                        el *= -np.sqrt(2.0 / i) * b
+
+                    for j in range(1, m + 1):
+                        el *= -1.0 / (b * np.sqrt(2 * j)) * (n + 1 - j)
+                    Pnn[n, m] = el
+                else:
+                    alpha = -2.0 * b / a
+                    beta = 1.0 / (a * a) - 1.0
+                    chi = beta / (alpha * alpha)
+
+                    temp = 1.0
+                    for k in range(1, n - m + 1):
+                        temp *= alpha / k
+
+                    sum = temp
+                    for k in range(1, int((1e-16 + 1.0 * (n - m)) / 2.0) + 1):
+                        # for k in range(1, (n-m)/2+1):
+                        temp *= (n - m - 2 * k + 2) * (n - m - 2 * k + 1) * chi / k
+                        sum += temp
+
+                    sum *= 1.0 / a ** (m + 1)
+                    for k in range(m + 1, n + 1):
+                        sum *= np.sqrt(k / 2.0)
+
+                    Pnn[n, m] = sum
+    return Pnn
