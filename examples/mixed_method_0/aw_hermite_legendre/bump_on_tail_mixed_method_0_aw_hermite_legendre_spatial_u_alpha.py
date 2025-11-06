@@ -73,8 +73,8 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod0(Nx=51,
-                                        Nv_e1=16,
-                                        Nv_e2=70,
+                                        Nv_e1=100,
+                                        Nv_e2=100,
                                         epsilon=1e-2,
                                         v_a=-10,
                                         v_b=10,
@@ -88,7 +88,7 @@ if __name__ == "__main__":
                                         T=25,
                                         k0=1,
                                         nu_L=1,
-                                        nu_H=10,
+                                        nu_H=30,
                                         gamma=0.5,
                                         u_tol=0.2,
                                         alpha_tol=0.5,
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2 ** 2)) / setup.alpha_e2
+        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1] ** 2)) / setup.alpha_e2[-1]
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
                 nn + 1) * setup.Nx] = x_component * v_component

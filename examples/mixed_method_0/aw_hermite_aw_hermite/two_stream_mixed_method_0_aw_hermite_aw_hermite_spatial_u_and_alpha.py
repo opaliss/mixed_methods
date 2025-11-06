@@ -70,12 +70,10 @@ def rhs(y):
     dalphadx = setup.D @ setup.alpha_e2[-1]
 
     M_term_u_e2 = setup.M1_du_dx @ (np.tile(dudx, reps=setup.Nv_e1) * y[setup.Nv_e1 * setup.Nx:]) \
-                  + setup.M2_du_dx @ (np.tile(dudx * setup.u_e1[-1] / setup.alpha_e1[-1], reps=setup.Nv_e1) * y[
-                                                                                                              setup.Nv_e1 * setup.Nx:])
+                  + setup.M2_du_dx @ (np.tile(dudx * setup.u_e2[-1] / setup.alpha_e2[-1], reps=setup.Nv_e1) * y[setup.Nv_e1 * setup.Nx:])
 
     M_term_alpha_e2 = setup.M1_dalpha_dx @ (np.tile(dalphadx, reps=setup.Nv_e2) * y[setup.Nv_e1 * setup.Nx:]) \
-                      + setup.M2_dalpha_dx @ (
-                                  np.tile(dalphadx * setup.u_e2[-1] / setup.alpha_e2[-1], reps=setup.Nv_e2) * y[
+                      + setup.M2_dalpha_dx @ (np.tile(dalphadx * setup.u_e2[-1] / setup.alpha_e2[-1], reps=setup.Nv_e2) * y[
                                                                                                               setup.Nv_e1 * setup.Nx:])
 
     dydt_[setup.Nv_e1 * setup.Nx:] = L_term_e2 + N_term_e2 + M_term_u_e2 + M_term_alpha_e2
@@ -83,24 +81,22 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod0(Nx=101,
-                                        Nv_e1=100,
-                                        Nv_e2=100,
+    setup = SimulationSetupMixedMethod0(Nx=31,
+                                        Nv_e1=30,
+                                        Nv_e2=30,
                                         epsilon=1e-3,
                                         alpha_e1=1/2,
+                                        alpha_e2=1/2,
                                         u_e1=-1,
                                         u_e2=1,
-                                        alpha_e2=1/2,
                                         L=2*np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=30,
+                                        T=40,
                                         k0=1,
-                                        nu_L=0.5,
-                                        nu_H=2,
-                                        gamma=0.,
-                                        u_tol=0.01,
-                                        alpha_tol=0.5,
+                                        nu_H=15,
+                                        u_tol=0.03,
+                                        alpha_tol=1,
                                         n0_e1=0.5,
                                         n0_e2=0.5,
                                         adaptive_in_space=True,
@@ -108,15 +104,17 @@ if __name__ == "__main__":
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
-    # bulk electrons => aw_hermite (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+    # bulk electrons => aw_hermite (perturbed)
     y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / setup.alpha_e1[-1]
+    # bump electrons => aw_hermite (perturbed)
     y0[setup.Nv_e1*setup.Nx: setup.Nv_e1*setup.Nx + setup.Nx] = setup.n0_e2 * (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / setup.alpha_e2[-1]
 
     setup.alpha_e1[-1] = setup.alpha_e1[-1] * np.ones(setup.Nx)
     setup.u_e1[-1] = setup.u_e1[-1] * np.ones(setup.Nx)
     setup.alpha_e2[-1] = setup.alpha_e2[-1] * np.ones(setup.Nx)
     setup.u_e2[-1] = setup.u_e2[-1] * np.ones(setup.Nx)
+
     if setup.construct_integrals:
         setup.update_J()
     # start timer
@@ -166,3 +164,11 @@ if __name__ == "__main__":
     np.save("../../../data/mixed_method_0_aw_hermite_aw_hermite/two_stream/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
+
+    np.save("../../../data/mixed_method_0_aw_hermite_aw_hermite/two_stream/alpha_e2_Nve2_" + str(setup.Nv_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e2)
+
+    np.save("../../../data/mixed_method_0_aw_hermite_aw_hermite/two_stream/u_e2_Nve2_" + str(setup.Nv_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e2)

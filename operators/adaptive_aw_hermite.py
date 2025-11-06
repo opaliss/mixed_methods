@@ -280,7 +280,7 @@ def check_if_update_needed(u_s_curr, u_s, u_s_tol, alpha_s_curr, alpha_s, alpha_
         else:
             return False
     else:
-        u_diff_array = u_s - u_s_curr
+        u_diff_array = (u_s - u_s_curr)
         alpha_diff_array = (alpha_s - alpha_s_curr) / alpha_s
         if any(u_diff > u_s_tol for u_diff in u_diff_array):
             return True
@@ -324,7 +324,7 @@ def get_projection_matrix(u_s_curr, u_s, alpha_s_curr, alpha_s, Nx_total, Nv, al
         else:
             return np.eye(Nv * Nx_total), 0
     else:
-        u_diff_array = u_s - u_s_curr
+        u_diff_array = (u_s - u_s_curr)
         alpha_diff_array = (alpha_s - alpha_s_curr) / alpha_s
         if any(u_diff > u_s_tol for u_diff in u_diff_array) and any(
                 alpha_diff > alpha_s_tol for alpha_diff in alpha_diff_array):

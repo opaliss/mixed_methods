@@ -62,13 +62,13 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 u_e1_curr = updated_u(u_prev=param.u_e1[-1],
                                       alpha_prev=param.alpha_e1[-1],
                                       C00=y_sol[:, tt - 1][:param.Nx],
-                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx], sigma=param.Nx / 10)
+                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx], sigma=param.Nx//10)
 
                 # updated alpha (electron 1) parameter
                 alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],
                                               C20=y_sol[:, tt - 1][2 * param.Nx: 3 * param.Nx],
                                               C10=y_sol[:, tt - 1][param.Nx: 2 * param.Nx],
-                                              C00=y_sol[:, tt - 1][:param.Nx], sigma=param.Nx / 10)
+                                              C00=y_sol[:, tt - 1][:param.Nx], sigma=param.Nx//10)
 
                 # electron 1 check mark
                 if check_if_update_needed(u_s_curr=u_e1_curr,
@@ -137,9 +137,8 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 u_e2_curr = updated_u(u_prev=param.u_e2[-1],
                                       alpha_prev=param.alpha_e2[-1],
                                       C00=y_sol[:, tt - 1][param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx],
-                                      C10=y_sol[:, tt - 1][
-                                          param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx],
-                                      sigma=param.Nx / 10)
+                                      C10=y_sol[:, tt - 1][param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx],
+                                      sigma=param.Nx//10)
 
                 # update alpha (electron 2) parameter
                 alpha_e2_curr = updated_alpha(alpha_prev=param.alpha_e2[-1],
@@ -149,7 +148,7 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                                                   param.Nv_e1 * param.Nx + param.Nx: param.Nv_e1 * param.Nx + 2 * param.Nx],
                                               C00=y_sol[:, tt - 1][
                                                   param.Nv_e1 * param.Nx: param.Nv_e1 * param.Nx + param.Nx],
-                                              sigma=param.Nx / 10)
+                                              sigma=param.Nx//10)
 
                 # electron 2 check mark
                 if check_if_update_needed(u_s_curr=u_e2_curr, u_s=param.u_e2[-1], u_s_tol=param.u_tol,
@@ -165,23 +164,31 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                                                                               Nx_total=param.Nx, Nv=param.Nv_e2,
                                                                               alpha_s_tol=param.alpha_tol,
                                                                               u_s_tol=param.u_tol, koshkarov=False)
-                    if case == 1:
-                        print("(e2) tolerance met for u and alpha")
-                        # update parameters
-                        param.replace_alpha_e2(alpha_e2_curr=alpha_e2_curr)
-                        param.replace_u_e2(u_e2_curr=u_e2_curr)
+                    y_next = P @ y_sol[:, tt - 1][param.Nv_e1 * param.Nx:]
+                    sum_next = np.sum(np.abs(y_next[param.Nv_e2 * param.Nx - (param.Nv_e2 // 3) * param.Nx: -1]))
+                    sum_prev = np.sum(np.abs(y_sol[:, tt - 1][(param.Nv_e1+param.Nv_e2) * param.Nx - (param.Nv_e2 // 3) * param.Nx:-1]))
+                    print("sum prev = ", sum_prev)
+                    print("sum next = ", sum_next)
 
-                    elif case == 2:
-                        print("(e2) tolerance met for u")
-                        param.replace_u_e2(u_e2_curr=u_e2_curr)
+                    if sum_next < sum_prev:
+                        if case == 1:
+                            print("(e2) tolerance met for u and alpha")
+                            # update parameters
+                            param.replace_alpha_e2(alpha_e2_curr=alpha_e2_curr)
+                            param.replace_u_e2(u_e2_curr=u_e2_curr)
 
-                    elif case == 3:
-                        print("(e2) tolerance met for alpha")
-                        param.replace_alpha_e2(alpha_e2_curr=alpha_e2_curr)
+                        elif case == 2:
+                            print("(e2) tolerance met for u")
+                            param.replace_u_e2(u_e2_curr=u_e2_curr)
 
-                    # project the previous timestamp results
-                    y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx] = \
-                        P @ y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx]
+                        elif case == 3:
+                            print("(e2) tolerance met for alpha")
+                            param.replace_alpha_e2(alpha_e2_curr=alpha_e2_curr)
+
+                        # project the previous timestamp results
+                        y_sol[:, tt - 1][param.Nv_e1 * param.Nx: (param.Nv_e1 + param.Nv_e2) * param.Nx] = y_next
+                    else:
+                        print("projection is actually not favorable for the stability of Hermite! ")
 
                 # update parameters electron 2
                 param.add_alpha_e2(alpha_e2_curr=param.alpha_e2[-1])

@@ -25,16 +25,16 @@ def rhs(y):
     rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha_e1[-1],
                                                    v_a=setup.v_a, v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx]*0)
 
     # print("before = ", np.sum(np.abs((setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (
     # setup.Nv_e2, setup.Nx))).flatten())))
-    # enforce the constraints !!!
-    for ii in range(setup.Nx):
-        y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx] = \
-            lgmres(A=setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2],
-                   b=np.zeros(setup.Nv_e1),
-                   atol=1e-12, rtol=1e-12, x0=y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx])[0]
+    # # enforce the constraints !!!
+    # for ii in range(setup.Nx):
+    #     y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx] = \
+    #         lgmres(A=setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2],
+    #                b=np.zeros(setup.Nv_e1),
+    #                atol=1e-12, rtol=1e-12, x0=y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx])[0]
 
     # print("after = ", np.sum(np.abs((setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (setup.Nv_e2, setup.Nx))).flatten())))
     # electric field computed (poisson solver)
@@ -97,8 +97,8 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod2(Nx=101,
-                                        Nv_e1=51,
-                                        Nv_e2=51,
+                                        Nv_e1=11,
+                                        Nv_e2=11,
                                         epsilon=1e-2,
                                         v_a=-2,
                                         v_b=2,
@@ -141,7 +141,8 @@ if __name__ == "__main__":
                                                                          param=setup,
                                                                          adaptive_u_and_alpha=True,
                                                                          bulk_hermite_adapt=True,
-                                                                         bump_hermite_adapt=False)
+                                                                         bump_hermite_adapt=False,
+                                                                         adaptive_between_hermite_and_legendre=False)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall

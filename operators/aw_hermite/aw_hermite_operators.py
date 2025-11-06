@@ -45,18 +45,32 @@ def aw_psi_hermite_complement(n, alpha_s, u_s, v):
     # scaled velocity coordinate
     xi = (v - u_s) / alpha_s
     # iteratively compute psi_{n}(xi)
-    if n == 0:
-        return np.ones(len(xi))
-    if n == 1:
-        return (2 * xi) / np.sqrt(2)
+    if isinstance(xi, np.ndarray):
+        if n == 0:
+            return np.ones(len(xi))
+        if n == 1:
+            return (2 * xi) / np.sqrt(2)
+        else:
+            psi = np.zeros((n + 1, len(xi)))
+            psi[0, :] = 1
+            psi[1, :] = (2 * xi) / np.sqrt(2)
+            for jj in range(1, n):
+                factor = - alpha_s * np.sqrt((jj + 1) / 2)
+                psi[jj + 1, :] = (alpha_s * np.sqrt(jj / 2) * psi[jj - 1, :] + u_s * psi[jj, :] - v * psi[jj, :]) / factor
+        return psi[n, :]
     else:
-        psi = np.zeros((n + 1, len(xi)))
-        psi[0, :] = 1
-        psi[1, :] = (2 * xi) / np.sqrt(2)
-        for jj in range(1, n):
-            factor = - alpha_s * np.sqrt((jj + 1) / 2)
-            psi[jj + 1, :] = (alpha_s * np.sqrt(jj / 2) * psi[jj - 1, :] + u_s * psi[jj, :] - v * psi[jj, :]) / factor
-    return psi[n, :]
+        if n == 0:
+            return 1
+        if n == 1:
+            return (2 * xi) / np.sqrt(2)
+        else:
+            psi = np.zeros(n + 1)
+            psi[0] = 1
+            psi[1] = (2 * xi) / np.sqrt(2)
+            for jj in range(1, n):
+                factor = - alpha_s * np.sqrt((jj + 1) / 2)
+                psi[jj + 1] = (alpha_s * np.sqrt(jj / 2) * psi[jj - 1] + u_s * psi[jj] - v * psi[jj]) / factor
+        return psi[n]
 
 
 def A1_hermite(D, Nv):

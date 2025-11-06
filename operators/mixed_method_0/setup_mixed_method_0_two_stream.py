@@ -16,10 +16,10 @@ from operators.finite_difference import ddx_central
 
 
 class SimulationSetupMixedMethod0:
-    def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, alpha_e1, u_e1, u_e2, gamma, L, dt, T0, T,
+    def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, alpha_e1, u_e1, u_e2, L, dt, T0, T,
                 n0_e1, n0_e2, alpha_e2, u_tol, alpha_tol,  k0,
                  nu_L=0, nu_H=0,
-                 v_a=-np.inf, v_b=np.inf,
+                 v_a=-np.inf, v_b=np.inf, gamma=0,
                  alpha_i=np.sqrt(2 / 1836),
                  adaptive_in_space=True, window_size=5,
                  u_filter_thresh=np.inf, construct_integrals=True,
