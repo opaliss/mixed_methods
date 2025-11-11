@@ -1,7 +1,7 @@
 """Module to run mixed method #1 bump on tail testcase
 
 Author: Opal Issan
-Date: July 1st, 2025
+Date: Nov 10th, 2025
 """
 import sys, os
 
@@ -9,14 +9,13 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1
-from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
+from operators.legendre.legendre_operators import nonlinear_legendre
 from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
 import time
 import numpy as np
-import scipy
 
 
 def rhs(y):
@@ -72,47 +71,53 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=100,
-                                        Nv_e2=100,
+                                        Nv_e1=101,
+                                        Nv_e2=101,
                                         epsilon=1e-2,
-                                        v_a=-10,
-                                        v_b=10,
+                                        v_a=-4,
+                                        v_b=4,
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
-                                        L=20 * np.pi / 3,
+                                        L=4 * np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=40,
+                                        T=45,
                                         nu_L=1,
                                         nu_H=0,
-                                        n0_e1=0.9,
-                                        n0_e2=0.1,
-                                        u_e2=4.5,
-                                        alpha_e2=1/np.sqrt(2),
+                                        n0_e1=1,
+                                        n0_e2=0.,
+                                        u_e2=0,
+                                        alpha_e2=1,
                                         gamma=0.5,
-                                        k0=1,
+                                        k0=0.5,
                                         Nv_int=5000,
-                                        u_tol=1e-1,
-                                        alpha_tol=1e-1,
+                                        u_tol=10,
+                                        alpha_tol=10,
                                         cutoff=3,
-                                        threshold_last_hermite=0.005,
+                                        threshold_last_hermite=100,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
     y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
     # grid
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
-    # initial condition
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ * 2 * np.pi / setup.L)) / setup.alpha_e1[-1]
-    # beam electrons => legendre
-    x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
-    for nn in range(setup.Nv_e2):
+    v_ = np.linspace(setup.v_a, setup.v_b, 100000, endpoint=False)
+
+    # b = 1
+    # # initial condition
+    # y0[:setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
+    # y0[2 * setup.Nx: 3 * setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) * (setup.alpha_e1[-1] * b / np.sqrt(2))
+
+    x_component = 1 + setup.epsilon * np.cos(setup.k0 * x_)
+    v_component = setup.n0_e1 * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1**2)) / setup.alpha_e1 \
+                + setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
+    # integrate
+    for nn in range(setup.Nv_e1):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
+        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2)/ (setup.alpha_e2**2)) / setup.alpha_e2
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (nn + 1) * setup.Nx] = \
-            x_component * v_component
+        y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
+                    nn + 1) * setup.Nx] = x_component * v_component
 
     # start timer
     start_time_cpu = time.process_time()
@@ -128,7 +133,7 @@ if __name__ == "__main__":
                                                                          bump_hermite_adapt=False,
                                                                          bulk_hermite_adapt=True,
                                                                          adaptive_u_and_alpha=True,
-                                                                         adaptive_between_hermite_and_legendre=True,
+                                                                         adaptive_between_hermite_and_legendre=False,
                                                                          MM1=True)
 
     end_time_cpu = time.process_time() - start_time_cpu
@@ -138,22 +143,22 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/two_stream/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
         np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/two_stream/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/two_stream/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u (for the bulk Hermite)
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/two_stream/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/two_stream/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
