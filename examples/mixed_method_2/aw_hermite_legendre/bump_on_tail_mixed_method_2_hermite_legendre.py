@@ -11,8 +11,9 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1_legendre
-from operators.mixed_method_2.mixed_method_2_operators import extra_term_2, extra_term_2_legendre
-from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre, boundary_mm2
+from operators.mixed_method_2.mixed_method_2_operators import extra_term_1_hermite, extra_term_2_legendre, \
+    extra_term_3_legendre, extra_term_2_hermite
+from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
 from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_2.setup_mixed_method_2_two_stream import SimulationSetupMixedMethod2
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
@@ -24,12 +25,10 @@ import scipy
 
 def rhs(y):
     # charge density computed
-    rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e,
-                                                   alpha_e=setup.alpha_e1[-1],
+    rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha_e1[-1],
                                                    v_a=setup.v_a, v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[
-                                                                 setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=np.zeros(setup.Nx))
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -46,28 +45,27 @@ def rhs(y):
                                                             alpha=setup.alpha_e1[-1],
                                                             Nv=setup.Nv_e1,
                                                             Nx=setup.Nx) \
-                                     + extra_term_2(I_int_complement=setup.I_int_complement[-1, :],
-                                                    Nv_H=setup.Nv_e1,
-                                                    D=setup.D,
-                                                    Nx=setup.Nx,
-                                                    state_legendre=y[setup.Nv_e1 * setup.Nx:],
-                                                    Nv_L=setup.Nv_e2)\
-                                    # + boundary_mm2(E=E,
-                                    #                psi=y[setup.Nv_e1 * setup.Nx:],
-                                    #                q=setup.q_e,
-                                    #                m=setup.m_e,
-                                    #                Nv=setup.Nv,
-                                    #                Nx=setup.Nx,
-                                    #                gamma=setup.gamma,
-                                    #                v_a=setup.v_a,
-                                    #                v_b=setup.v_b,
-                                    #                psi_dual_v_a=setup.psi_dual_v_a,
-                                    #                psi_dual_v_b=setup.psi_dual_v_b,
-                                    #                alpha=setup.alpha_e1[-1])
+                                     + extra_term_1_hermite(I_int_complement=setup.I_int_complement[-1, :],
+                                                            Nv_H=setup.Nv_e1,
+                                                            D=setup.D,
+                                                            Nx=setup.Nx,
+                                                            state_legendre=y[setup.Nv_e1 * setup.Nx:],
+                                                            Nv_L=setup.Nv_e2) \
+                                     + extra_term_2_hermite(E=E,
+                                                            psi=y[setup.Nv_e1 * setup.Nx:],
+                                                            q=setup.q_e,
+                                                            m=setup.m_e,
+                                                            Nv=setup.Nv,
+                                                            Nx=setup.Nx,
+                                                            gamma=setup.gamma,
+                                                            v_a=setup.v_a,
+                                                            v_b=setup.v_b,
+                                                            psi_dual_v_a=setup.psi_dual_v_a,
+                                                            psi_dual_v_b=setup.psi_dual_v_b,
+                                                            alpha=setup.alpha_e1[-1])
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
-                                     + nonlinear_legendre(E=E,
-                                                          psi=y[setup.Nv_e1 * setup.Nx:],
+                                     + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
                                                           Nv=setup.Nv_e2,
                                                           Nx=setup.Nx,
                                                           B_mat=setup.B_e_L,
@@ -81,7 +79,7 @@ def rhs(y):
                                      + extra_term_1_legendre(J_int=setup.J_int[-1, :],
                                                              v_b=setup.v_b,
                                                              v_a=setup.v_a,
-                                                             C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx:setup.Nv_e1 * setup.Nx],
+                                                             C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
                                                              alpha=setup.alpha_e1[-1],
                                                              Nv_H=setup.Nv_e1,
                                                              D=setup.D,
@@ -96,7 +94,22 @@ def rhs(y):
                                                              state_legendre=y[setup.Nv_e1 * setup.Nx:],
                                                              Nv_L=setup.Nv_e2,
                                                              v_b=setup.v_b,
-                                                             v_a=setup.v_a)
+                                                             v_a=setup.v_a)\
+                                    + extra_term_3_legendre(J_int=setup.J_int,
+                                                            Nv_H=setup.Nv_e1,
+                                                            Nv_L=setup.Nv_e2,
+                                                            Nx=setup.Nx,
+                                                            v_b=setup.v_b,
+                                                            v_a=setup.v_a,
+                                                            state_legendre=y[setup.Nv_e1 * setup.Nx:],
+                                                            psi_dual_v_b=setup.psi_dual_v_b,
+                                                            psi_dual_v_a=setup.psi_dual_v_a,
+                                                            alpha=setup.alpha_e1[-1],
+                                                            gamma=setup.gamma,
+                                                            E=E,
+                                                            q=setup.q_e,
+                                                            m=setup.m_e)
+
 
     return dydt_
 

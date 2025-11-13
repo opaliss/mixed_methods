@@ -49,16 +49,19 @@ def rhs(y):
                                                             state_legendre=y[setup.Nv_e1 * setup.Nx:],
                                                             Nv_L=setup.Nv_e2) \
                                      + extra_term_2_hermite(E=E,
-                                                            psi=y[setup.Nv_e1 * setup.Nx:],
+                                                            state_legendre=y[setup.Nv_e1 * setup.Nx:],
                                                             q=setup.q_e,
                                                             m=setup.m_e,
-                                                            Nv=setup.Nv,
+                                                            Nv_H=setup.Nv_e1,
+                                                            Nv_L=setup.Nv_e2,
                                                             Nx=setup.Nx,
                                                             gamma=setup.gamma,
                                                             v_a=setup.v_a,
                                                             v_b=setup.v_b,
                                                             psi_dual_v_a=setup.psi_dual_v_a,
                                                             psi_dual_v_b=setup.psi_dual_v_b,
+                                                            xi_v_a=setup.xi_v_a,
+                                                            xi_v_b=setup.xi_v_b,
                                                             alpha=setup.alpha_e1[-1])
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
@@ -101,6 +104,8 @@ def rhs(y):
                                                             state_legendre=y[setup.Nv_e1 * setup.Nx:],
                                                             psi_dual_v_b=setup.psi_dual_v_b,
                                                             psi_dual_v_a=setup.psi_dual_v_a,
+                                                            xi_v_b=setup.xi_v_b,
+                                                            xi_v_a=setup.xi_v_a,
                                                             alpha=setup.alpha_e1[-1],
                                                             gamma=setup.gamma,
                                                             E=E,
@@ -114,7 +119,7 @@ def rhs(y):
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod2(Nx=101,
                                         Nv_e1=11,
-                                        Nv_e2=11,
+                                        Nv_e2=13,
                                         epsilon=1e-2,
                                         v_a=-2,
                                         v_b=2,

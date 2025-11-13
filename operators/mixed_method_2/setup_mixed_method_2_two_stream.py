@@ -93,6 +93,7 @@ class SimulationSetupMixedMethod2:
         self.xi_v_b = np.zeros(self.Nv_e2)
         self.psi_dual_v_a = np.zeros(self.Nv_e1)
         self.psi_dual_v_b = np.zeros(self.Nv_e1)
+
         for nn in range(self.Nv_e2):
             self.xi_v_a[nn] = xi_legendre(n=nn, v=self.v_a, v_a=self.v_a, v_b=self.v_b)
             self.xi_v_b[nn] = xi_legendre(n=nn, v=self.v_b, v_a=self.v_a, v_b=self.v_b)

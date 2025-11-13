@@ -4,7 +4,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 9th, 2025
 """
 import numpy as np
-from operators.legendre.legendre_operators import boundary_term
+from operators.legendre.legendre_operators import construct_f
 
 
 def extra_term_1_hermite(I_int_complement, Nv_H, D, Nx, state_legendre, Nv_L):
@@ -24,30 +24,43 @@ def extra_term_1_hermite(I_int_complement, Nv_H, D, Nx, state_legendre, Nv_L):
     return sol_
 
 
-def extra_term_2_hermite(E, psi, q, m, Nv, Nx, gamma, v_a, v_b, psi_dual_v_a, psi_dual_v_b, alpha):
-    """compute acceleration term (nonlinear)
+def extra_term_2_hermite(E, state_legendre, q, m, Nv_H, Nv_L, Nx, gamma, v_a, v_b,
+                         xi_v_a, xi_v_b,
+                         psi_dual_v_a, psi_dual_v_b, alpha):
+    """
 
+    :param xi_v_a:
+    :param xi_v_b:
     :param psi_dual_v_b:
     :param psi_dual_v_a:
     :param alpha:
     :param v_b:
     :param v_a:
     :param E: 1d array, electric field on finite difference mesh
-    :param psi: 1d array, vector of all coefficients
+    :param state_legendre: 1d array, vector of all coefficients of delta f [Legendre]
     :param q: float, charge of particles
     :param m: float, mass of particles
     :param Nx: int, grid size in space
-    :param Nv: int, spectral resolution in velocity
+    :param Nv_H: int, spectral resolution in velocity [Hermite]
+    :param Nv_L: int, spectral resolution in velocity [Legendre]
     :param gamma: float, penalty term
     :return: N(E, psi)
     """
-    res_boundary = np.zeros(len(psi))
-    for nn in range(0, Nv):
+    res_boundary = np.zeros(Nv_H * Nx)
+    for nn in range(0, Nv_H):
         if gamma != 0:
-            res_boundary[nn * Nx: (nn + 1) * Nx] += -boundary_term(n=nn, gamma=gamma,
-                                                                   v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv,
-                                                                   psi=psi, xi_v_a=psi_dual_v_a, xi_v_b=psi_dual_v_b)
-    return (res_boundary.reshape(Nv, Nx) * q / m * E).flatten() / alpha
+            res_boundary[nn * Nx: (nn + 1) * Nx] = -boundary_term(n=nn,
+                                                                  gamma=gamma * (v_b - v_a),
+                                                                  v_b=v_b,
+                                                                  v_a=v_a,
+                                                                  Nx=Nx,
+                                                                  Nv=Nv_L,
+                                                                  state_legendre=state_legendre,
+                                                                  psi_dual_v_a=psi_dual_v_a,
+                                                                  psi_dual_v_b=psi_dual_v_b,
+                                                                  xi_v_a=xi_v_a,
+                                                                  xi_v_b=xi_v_b)
+    return (res_boundary.reshape(Nv_H, Nx) * q / m * E).flatten() / alpha
 
 
 def summation_term(I_int_complement, D, state_legendre, Nx, Nv_L):
@@ -89,8 +102,8 @@ def extra_term_2_legendre(I_int_complement, J_int, Nv_H, Nv_L, Nx, v_b, v_a, D, 
     return sol_
 
 
-def extra_term_3_legendre(J_int, Nv_H, Nv_L, Nx, v_b, v_a, state_legendre, psi_dual_v_b, psi_dual_v_a, alpha, gamma, E,
-                          q, m):
+def extra_term_3_legendre(J_int, Nv_H, Nv_L, Nx, v_b, v_a, state_legendre, psi_dual_v_b, psi_dual_v_a,
+                          xi_v_b, xi_v_a, alpha, gamma, E, q, m):
     """
 
     :param J_int:
@@ -102,6 +115,8 @@ def extra_term_3_legendre(J_int, Nv_H, Nv_L, Nx, v_b, v_a, state_legendre, psi_d
     :param state_legendre:
     :param psi_dual_v_b:
     :param psi_dual_v_a:
+    :param xi_v_b:
+    :param xi_v_a:
     :param alpha:
     :param gamma:
     :param E:
@@ -109,13 +124,42 @@ def extra_term_3_legendre(J_int, Nv_H, Nv_L, Nx, v_b, v_a, state_legendre, psi_d
     :param m:
     :return:
     """
-    res_boundary = np.zeros(len(state_legendre))
+    res_boundary = np.zeros(Nv_L * Nx)
     for mm in range(0, Nv_L):
         for nn in range(0, Nv_H):
             res_boundary[mm * Nx: (mm + 1) * Nx] += boundary_term(n=nn, gamma=gamma,
-                                                                   v_b=v_b, v_a=v_a,
-                                                                   Nx=Nx, Nv=Nv_L,
-                                                                   psi=state_legendre,
-                                                                   xi_v_a=psi_dual_v_a, xi_v_b=psi_dual_v_b) * J_int[nn, mm]
+                                                                  v_b=v_b, v_a=v_a,
+                                                                  Nx=Nx, Nv=Nv_L,
+                                                                  state_legendre=state_legendre,
+                                                                  psi_dual_v_a=psi_dual_v_a,
+                                                                  psi_dual_v_b=psi_dual_v_b,
+                                                                  xi_v_a=xi_v_a,
+                                                                  xi_v_b=xi_v_b) * J_int[nn, mm]
 
     return (res_boundary.reshape(Nv_L, Nx) * q / m * E).flatten() / alpha
+
+
+def boundary_term(n, gamma, v_b, v_a, Nx, Nv, state_legendre, psi_dual_v_a, psi_dual_v_b, xi_v_a, xi_v_b):
+    """
+
+    :param psi_dual_v_b:
+    :param psi_dual_v_a:
+    :param state_legendre:
+    :param Nv:
+    :param Nx:
+    :param v_a:
+    :param v_b:
+    :param gamma:
+    :param n:
+    :param xi_v_b:
+    :param xi_v_a:
+    :return:
+    """
+    if n < 3:
+        return 0
+    else:
+        return gamma / (v_b - v_a) * (psi_dual_v_b[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_b)
+                                    - psi_dual_v_a[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_a))
+
+
+
