@@ -122,33 +122,6 @@ def nonlinear_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma, v_a, v_b, xi_v_a, xi_
     return ((res_acc + res_boundary).reshape(Nv, Nx) * q / m * E).flatten()
 
 
-def boundary_mm2(E, psi, q, m, Nv, Nx, gamma, v_a, v_b, psi_dual_v_a, psi_dual_v_b, alpha):
-    """compute acceleration term (nonlinear)
-
-    :param psi_dual_v_b:
-    :param psi_dual_v_a:
-    :param alpha:
-    :param v_b:
-    :param v_a:
-    :param E: 1d array, electric field on finite difference mesh
-    :param psi: 1d array, vector of all coefficients
-    :param q: float, charge of particles
-    :param m: float, mass of particles
-    :param B_mat: 2d array, matrix with sigma coefficients
-    :param Nx: int, grid size in space
-    :param Nv: int, spectral resolution in velocity
-    :param gamma: float, penalty term
-    :return: N(E, psi)
-    """
-    res_boundary = np.zeros(len(psi))
-    for nn in range(3, Nv):
-        if gamma != 0:
-            res_boundary[nn * Nx: (nn + 1) * Nx] += -boundary_term(n=nn, gamma=gamma, v_b=v_b, v_a=v_a, Nx=Nx, Nv=Nv,
-                                                                   psi=psi, xi_v_a=psi_dual_v_a, xi_v_b=psi_dual_v_b)
-    return ((res_boundary).reshape(Nv, Nx) * q / m * E).flatten() / alpha
-
-
-
 def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi, xi_v_a, xi_v_b):
     """
     
@@ -167,7 +140,7 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, psi, xi_v_a, xi_v_b):
         return 0
     else:
         return gamma / (v_b - v_a) * (xi_v_b[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_b)
-                                      - xi_v_a[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_a))
+                                    - xi_v_a[n] * construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_a))
 
 
 def construct_f(state, Nv, Nx, xi):

@@ -8,7 +8,7 @@ import sys, os
 sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
-from operators.mixed_method_1.mixed_method_1_operators import extra_term_1, closure_term
+from operators.mixed_method_1.mixed_method_1_operators import extra_term_1_legendre, closure_term
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
 from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite, aw_psi_hermite_complement
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
@@ -47,16 +47,16 @@ def rhs(y):
                                                           v_b=setup.v_b,
                                                           xi_v_a=setup.xi_v_a,
                                                           xi_v_b=setup.xi_v_b) \
-                                     + extra_term_1(LH_int_1=setup.LH_int[:, -1],
-                                                    v_b=setup.v_b,
-                                                    v_a=setup.v_a,
-                                                    C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
-                                                    alpha=setup.alpha_e1,
-                                                    Nv_H=setup.Nv_e1,
-                                                    D=setup.D,
-                                                    E=E,
-                                                    Nx=setup.Nx,
-                                                    Nv_L=setup.Nv_e2)
+                                     + extra_term_1_legendre(LH_int_1=setup.LH_int[:, -1],
+                                                             v_b=setup.v_b,
+                                                             v_a=setup.v_a,
+                                                             C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
+                                                             alpha=setup.alpha_e1,
+                                                             Nv_H=setup.Nv_e1,
+                                                             D=setup.D,
+                                                             E=E,
+                                                             Nx=setup.Nx,
+                                                             Nv_L=setup.Nv_e2)
     return dydt_
 
 
