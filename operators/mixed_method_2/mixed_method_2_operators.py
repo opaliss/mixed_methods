@@ -155,10 +155,7 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, state_legendre, psi_dual_v_a, psi_
     :param xi_v_a:
     :return:
     """
-    if n < 3:
-        return 0
-    else:
-        return gamma / (v_b - v_a) * (psi_dual_v_b[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_b)
+    return gamma / (v_b - v_a) * (psi_dual_v_b[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_b)
                                     - psi_dual_v_a[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_a))
 
 
