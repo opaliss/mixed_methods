@@ -99,6 +99,7 @@ if __name__ == "__main__":
                                         alpha_tol=1,
                                         n0_e1=0.5,
                                         n0_e2=0.5,
+                                        Nv_int=int(1e3),
                                         adaptive_in_space=True,
                                         construct_integrals=False)
 

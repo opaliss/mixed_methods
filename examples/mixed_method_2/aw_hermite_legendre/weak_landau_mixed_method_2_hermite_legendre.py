@@ -27,16 +27,6 @@ def rhs(y):
                                                    C0_e_hermite=y[:setup.Nx],
                                                    C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx]*0)
 
-    # print("before = ", np.sum(np.abs((setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (
-    # setup.Nv_e2, setup.Nx))).flatten())))
-    # # enforce the constraints !!!
-    # for ii in range(setup.Nx):
-    #     y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx] = \
-    #         lgmres(A=setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2],
-    #                b=np.zeros(setup.Nv_e1),
-    #                atol=1e-12, rtol=1e-12, x0=y[setup.Nv_e1 * setup.Nx:][ii::setup.Nx])[0]
-
-    # print("after = ", np.sum(np.abs((setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (setup.Nv_e2, setup.Nx))).flatten())))
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
 
@@ -57,9 +47,7 @@ def rhs(y):
                                                     D=setup.D,
                                                     Nx=setup.Nx,
                                                     state_legendre=y[setup.Nv_e1 * setup.Nx:],
-                                                    Nv_L=setup.Nv_e2)#\
-                                    #+ setup.penalty * (setup.I_int_complement[:setup.Nv_e1, :setup.Nv_e2] @ np.reshape(y[setup.Nv_e1 * setup.Nx:], (setup.Nv_e2, setup.Nx))).flatten() # penalty
-
+                                                    Nv_L=setup.Nv_e2)
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
                                      + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
                                                           Nv=setup.Nv_e2,

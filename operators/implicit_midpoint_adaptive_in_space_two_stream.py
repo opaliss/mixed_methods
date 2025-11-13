@@ -62,7 +62,11 @@ def implicit_midpoint_solver_adaptive_in_space_two_stream(y_0, right_hand_side, 
                 u_e1_curr = updated_u(u_prev=param.u_e1[-1],
                                       alpha_prev=param.alpha_e1[-1],
                                       C00=y_sol[:, tt - 1][:param.Nx],
-                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx], sigma=param.Nx//10)
+                                      C10=y_sol[:, tt - 1][param.Nx:2 * param.Nx],
+                                      sigma=param.Nx//10,
+                                      method="max_f",
+                                      C=y_sol[:, tt - 1][:param.Nx*param.Nv_e1],
+                                      v_a=param.v_a, v_b=param.v_b, Nv_int=param.Nv_int)
 
                 # updated alpha (electron 1) parameter
                 alpha_e1_curr = updated_alpha(alpha_prev=param.alpha_e1[-1],

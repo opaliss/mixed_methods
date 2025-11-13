@@ -112,7 +112,7 @@ if __name__ == "__main__":
                 setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2 ** 2)) / setup.alpha_e2
+        exp_ = np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1] ** 2)) / setup.alpha_e2[-1]
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (
                 nn + 1) * setup.Nx] = x_component * v_component

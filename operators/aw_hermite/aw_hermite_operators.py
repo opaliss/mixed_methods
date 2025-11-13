@@ -7,6 +7,32 @@ import numpy as np
 import scipy
 
 
+def aw_psi_hermite_vector(n, alpha_s, u_s, v):
+    """AW Hermite basis function (iterative approach)
+
+    :param alpha_s: float, velocity scaling parameter
+    :param u_s, float, velocity shifting parameter
+    :param v: float or array, the velocity coordinate on a grid
+    :param n: int, order of polynomial
+    :return: float or 1d array, AW aw_hermite polynomial of degree n evaluated at xi
+    """
+    # scaled velocity coordinate
+    xi = (v - u_s) / alpha_s
+    # iteratively compute psi_{n}(xi)
+    if n == 0:
+        return np.exp(-xi ** 2) / np.sqrt(np.pi)
+    if n == 1:
+        return np.exp(-xi ** 2) * (2 * xi) / np.sqrt(2 * np.pi)
+    else:
+        psi = np.zeros((n + 1, len(v)))
+        psi[0, :] = np.exp(-xi ** 2) / np.sqrt(np.pi)
+        psi[1, :] = np.exp(-xi ** 2) * (2 * xi) / np.sqrt(2 * np.pi)
+        for jj in range(1, n):
+            factor = - alpha_s * np.sqrt((jj + 1) / 2)
+            psi[jj + 1, :] = (alpha_s * np.sqrt(jj / 2) * psi[jj - 1, :] + u_s * psi[jj, :] - v * psi[jj, :]) / factor
+    return psi
+
+
 def aw_psi_hermite(n, alpha_s, u_s, v):
     """AW Hermite basis function (iterative approach)
 
@@ -24,7 +50,7 @@ def aw_psi_hermite(n, alpha_s, u_s, v):
     if n == 1:
         return np.exp(-xi ** 2) * (2 * xi) / np.sqrt(2 * np.pi)
     else:
-        psi = np.zeros((n + 1, len(xi)))
+        psi = np.zeros((n + 1, len(v)))
         psi[0, :] = np.exp(-xi ** 2) / np.sqrt(np.pi)
         psi[1, :] = np.exp(-xi ** 2) * (2 * xi) / np.sqrt(2 * np.pi)
         for jj in range(1, n):
@@ -265,3 +291,23 @@ def charge_density_two_stream_aw_hermite(alpha_e1, alpha_e2, alpha_i, C0_e1, C0_
     :return: change density rho(x, t=t*)
     """
     return q_e1 * alpha_e1 * C0_e1 + q_e2 * alpha_e2 * C0_e2 + q_i * alpha_i * C0_i
+
+
+def A_matrix_Opi(N, alpha):
+    """
+
+    :param N:
+    :param alpha:
+    :return:
+    """
+    A = np.zeros((N, N))
+    A[0, 0] = alpha / np.sqrt(2 * np.pi)
+    for i in range(1, N):
+        A[i, i] = A[i - 1, i - 1] * (2 * i - 1) / (2 * i)
+
+    for i in range(0, N):
+        for j in range(1, i + 1):
+            if (i - j) >= 0 and (i + j) < N:
+                A[i - j, i + j] = -np.sqrt((i - (j - 1)) / (i + j)) * A[i - (j - 1), i + (j - 1)]
+                A[i + j, i - j] = A[i - j, i + j]
+    return A

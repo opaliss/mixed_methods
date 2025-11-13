@@ -6,6 +6,7 @@ Date: Oct 24th, 2025
 import numpy as np
 import scipy
 from scipy.ndimage import gaussian_filter1d
+from operators.aw_hermite.aw_hermite_operators import aw_psi_hermite_vector
 
 
 def updated_alpha(alpha_prev, C20, C10, C00, sigma=np.nan):
@@ -24,7 +25,7 @@ def updated_alpha(alpha_prev, C20, C10, C00, sigma=np.nan):
     return solution
 
 
-def updated_u(u_prev, alpha_prev, C00, C10, sigma=np.nan):
+def updated_u(u_prev, alpha_prev, C00, C10, sigma=np.nan, method="physics", v_a=-6, v_b=6, Nv_int=5000, C=np.inf):
     """
 
     :param u_prev: float, previous iterative u^{s}_{j-1} parameter
@@ -33,11 +34,24 @@ def updated_u(u_prev, alpha_prev, C00, C10, sigma=np.nan):
     :param C10: float, the average first moment
     :return: u at the updated iteration u^{s}_{j}
     """
-    solution = u_prev + alpha_prev * C10 / C00 / np.sqrt(2)
-    if isinstance(solution, float) is False:
-        if sigma != 0 and sigma != np.nan:
-            solution = gaussian_filter1d(solution, sigma=sigma, mode="wrap")
-    return solution
+    if method == "physics":
+        u_proposed = u_prev + alpha_prev * C10 / C00 / np.sqrt(2)
+        if isinstance(u_proposed, float) is False:
+            if sigma != 0 and sigma != np.nan:
+                u_proposed = gaussian_filter1d(u_proposed, sigma=sigma, mode="wrap")
+        return u_proposed
+    elif method == "max_f":
+        v = np.linspace(v_a, v_b, Nv_int)
+        Nx = int(len(C00))
+        Nv = int(len(C)/Nx)
+        sol = np.zeros((Nx, Nv_int))
+        for jj in range(Nx):
+            sol[jj, :] = C[jj::Nx] @ aw_psi_hermite_vector(n=Nv-1, alpha_s=alpha_prev[jj], u_s=u_prev[jj], v=v)
+        u_proposed = np.max(sol, axis=1)
+        if isinstance(u_proposed, float) is False:
+            if sigma != 0 and sigma != np.nan:
+                u_proposed = gaussian_filter1d(u_proposed, sigma=sigma, mode="wrap")
+            return u_proposed
 
 
 def a_constant(alpha_curr, alpha_prev):

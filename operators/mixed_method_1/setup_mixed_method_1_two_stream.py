@@ -32,8 +32,8 @@ class SimulationSetupMixedMethod1:
         # aw_hermite scaling and shifting parameters
         self.alpha_e1 = [alpha_e1]
         self.u_e1 = [u_e1]
-        self.alpha_e2 = alpha_e2
-        self.u_e2 = u_e2
+        self.alpha_e2 = [alpha_e2]
+        self.u_e2 = [u_e2]
         # penalty magnitude
         self.gamma = gamma
         # x grid is from 0 to L
