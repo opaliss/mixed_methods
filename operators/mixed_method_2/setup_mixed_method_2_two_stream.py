@@ -15,7 +15,7 @@ import scipy
 
 class SimulationSetupMixedMethod2:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, alpha_e2, u_e2,
-                 gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2, k0, u_tol=np.inf, alpha_tol=np.inf, penalty=0,
+                 gamma, L, dt, T0, T, nu_H, nu_L, n0_e1, n0_e2, k0, u_tol=np.inf, alpha_tol=np.inf,
                  Nv_int=1000, m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=False):
         # velocity grid
         # set up configuration parameters
@@ -68,8 +68,6 @@ class SimulationSetupMixedMethod2:
         self.Nv_int = Nv_int
         # excited wavenumber
         self.k0 = k0
-        # enforce mixed method constraint by adding it to the right hand side
-        self.penalty = penalty
 
         # matrices
         # finite difference derivative matrix

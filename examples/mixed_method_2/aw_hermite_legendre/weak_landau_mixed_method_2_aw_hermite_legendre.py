@@ -1,7 +1,7 @@
 """Module to run mixed method #2 weak landau testcase
 
-Author: Opal Issan
-Last updated: Oct 23rd, 2025
+Author: Opal Issan (oissan@ucsd.edu)
+Last updated: Nov 13th, 2025
 """
 import sys, os
 
@@ -140,7 +140,6 @@ if __name__ == "__main__":
                                         u_tol=1e-2,
                                         n0_e1=1,
                                         n0_e2=0,
-                                        penalty=0.1,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
