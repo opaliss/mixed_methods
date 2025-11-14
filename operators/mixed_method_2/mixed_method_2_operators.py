@@ -24,7 +24,7 @@ def extra_term_1_hermite(I_int_complement, Nv_H, D, Nx, state_legendre, Nv_L):
     return sol_
 
 
-def extra_term_2_hermite(E, state_legendre, q, m, Nv_H, Nv_L, Nx, gamma, v_a, v_b,
+def extra_term_2_hermite(E, state_legendre, Nv_H, Nv_L, Nx, gamma, v_a, v_b,
                          xi_v_a, xi_v_b,
                          psi_dual_v_a, psi_dual_v_b, alpha):
     """
@@ -49,18 +49,18 @@ def extra_term_2_hermite(E, state_legendre, q, m, Nv_H, Nv_L, Nx, gamma, v_a, v_
     res_boundary = np.zeros(Nv_H * Nx)
     for nn in range(0, Nv_H):
         if gamma != 0:
-            res_boundary[nn * Nx: (nn + 1) * Nx] = -boundary_term(n=nn,
-                                                                  gamma=gamma * (v_b - v_a),
-                                                                  v_b=v_b,
-                                                                  v_a=v_a,
-                                                                  Nx=Nx,
-                                                                  Nv=Nv_L,
-                                                                  state_legendre=state_legendre,
-                                                                  psi_dual_v_a=psi_dual_v_a,
-                                                                  psi_dual_v_b=psi_dual_v_b,
-                                                                  xi_v_a=xi_v_a,
-                                                                  xi_v_b=xi_v_b)
-    return (res_boundary.reshape(Nv_H, Nx) * q / m * E).flatten() / alpha
+            res_boundary[nn * Nx: (nn + 1) * Nx] = boundary_term(n=nn,
+                                                                 gamma=gamma * (v_b - v_a),
+                                                                 v_b=v_b,
+                                                                 v_a=v_a,
+                                                                 Nx=Nx,
+                                                                 Nv=Nv_L,
+                                                                 state_legendre=state_legendre,
+                                                                 psi_dual_v_a=psi_dual_v_a,
+                                                                 psi_dual_v_b=psi_dual_v_b,
+                                                                 xi_v_a=xi_v_a,
+                                                                 xi_v_b=xi_v_b)
+    return (res_boundary.reshape(Nv_H, Nx) * E).flatten() / alpha
 
 
 def summation_term(I_int_complement, D, state_legendre, Nx, Nv_L):
@@ -103,7 +103,7 @@ def extra_term_2_legendre(I_int_complement, J_int, Nv_H, Nv_L, Nx, v_b, v_a, D, 
 
 
 def extra_term_3_legendre(J_int, Nv_H, Nv_L, Nx, v_b, v_a, state_legendre, psi_dual_v_b, psi_dual_v_a,
-                          xi_v_b, xi_v_a, alpha, gamma, E, q, m):
+                          xi_v_b, xi_v_a, alpha, gamma, E):
     """
 
     :param J_int:
@@ -136,7 +136,7 @@ def extra_term_3_legendre(J_int, Nv_H, Nv_L, Nx, v_b, v_a, state_legendre, psi_d
                                                                   xi_v_a=xi_v_a,
                                                                   xi_v_b=xi_v_b) * J_int[nn, mm]
 
-    return (res_boundary.reshape(Nv_L, Nx) * q / m * E).flatten() / alpha
+    return -(res_boundary.reshape(Nv_L, Nx) * E).flatten() / alpha
 
 
 def boundary_term(n, gamma, v_b, v_a, Nx, Nv, state_legendre, psi_dual_v_a, psi_dual_v_b, xi_v_a, xi_v_b):
@@ -155,8 +155,6 @@ def boundary_term(n, gamma, v_b, v_a, Nx, Nv, state_legendre, psi_dual_v_a, psi_
     :param xi_v_a:
     :return:
     """
+
     return gamma / (v_b - v_a) * (psi_dual_v_b[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_b)
-                                    - psi_dual_v_a[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_a))
-
-
-
+                                  - psi_dual_v_a[n] * construct_f(state=state_legendre, Nv=Nv, Nx=Nx, xi=xi_v_a))

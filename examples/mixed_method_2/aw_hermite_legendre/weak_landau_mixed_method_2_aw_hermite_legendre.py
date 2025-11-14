@@ -25,7 +25,7 @@ def rhs(y):
     rho = charge_density_two_stream_mixed_method_0(q_e=setup.q_e, alpha_e=setup.alpha_e1[-1],
                                                    v_a=setup.v_a, v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=np.zeros(setup.Nx))
+                                                   C0_e_legendre=y[setup.Nx*setup.Nv_e1: setup.Nx*setup.Nv_e1+setup.Nx])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -50,8 +50,6 @@ def rhs(y):
                                                             Nv_L=setup.Nv_e2) \
                                      + extra_term_2_hermite(E=E,
                                                             state_legendre=y[setup.Nv_e1 * setup.Nx:],
-                                                            q=setup.q_e,
-                                                            m=setup.m_e,
                                                             Nv_H=setup.Nv_e1,
                                                             Nv_L=setup.Nv_e2,
                                                             Nx=setup.Nx,
@@ -109,18 +107,16 @@ def rhs(y):
                                                             xi_v_a=setup.xi_v_a,
                                                             alpha=setup.alpha_e1[-1],
                                                             gamma=setup.gamma,
-                                                            E=E,
-                                                            q=setup.q_e,
-                                                            m=setup.m_e)
+                                                            E=E)
 
 
     return dydt_
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod2(Nx=51,
+    setup = SimulationSetupMixedMethod2(Nx=21,
                                         Nv_e1=11,
-                                        Nv_e2=13,
+                                        Nv_e2=11,
                                         epsilon=1e-2,
                                         v_a=-2,
                                         v_b=2,
