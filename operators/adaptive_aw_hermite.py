@@ -276,7 +276,7 @@ def P_case_iii(alpha_curr, alpha_prev, Nv):
 
 
 def check_if_update_needed(u_s_curr, u_s, u_s_tol, alpha_s_curr, alpha_s, alpha_s_tol):
-    """check if adaptive tolerance conditions are met
+    """check if advection tolerance conditions are met
 
     :param u_s_curr: float, u^{s}_{j+1}
     :param u_s: float, u^{s}_{j}

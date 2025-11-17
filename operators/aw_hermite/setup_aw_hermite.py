@@ -24,7 +24,7 @@ class SimulationSetupHermite:
         self.alpha_tol = alpha_tol
         # epsilon displacement in initial electron distribution
         self.epsilon = epsilon
-        # in the adaptive setting alpha and u are vectors and are tracked in time.
+        # in the advection setting alpha and u are vectors and are tracked in time.
         # velocity scaling parameter (mean thermal velocity)
         self.alpha_e = [alpha_e]
         self.alpha_i = [alpha_i]

@@ -15,7 +15,7 @@ import scipy
 
 class SimulationSetupMixedMethod1:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
-                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0, cutoff, threshold_last_hermite,
+                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0, cutoff=3, threshold_last_hermite=np.inf,
                  Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=True):
         # velocity grid
         # set up configuration parameters
