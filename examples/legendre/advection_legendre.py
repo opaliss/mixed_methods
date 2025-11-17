@@ -25,7 +25,7 @@ if __name__ == "__main__":
         # setup simulation parameters
         setup = SimulationSetupLegendre(Nx=101,
                                         Nv_e=Nv,
-                                        epsilon=1e-2,
+                                        epsilon=1,
                                         v_a=-5,
                                         v_b=5,
                                         gamma=0.5,
