@@ -72,7 +72,7 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=51,
+                                        Nv_e1=101,
                                         Nv_e2=101,
                                         epsilon=1e-2,
                                         v_a=-4,
@@ -84,7 +84,7 @@ if __name__ == "__main__":
                                         L=4 * np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=15,
+                                        T=45,
                                         nu_L=1,
                                         nu_H=0,
                                         n0_e1=0.5,
@@ -105,26 +105,26 @@ if __name__ == "__main__":
     v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=False)
 
     # TODO: setup #1 with v^2\exp(-v^2)
-    #  initial condition
-    # y0[:setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
-    # y0[2 * setup.Nx: 3 * setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) * (setup.alpha_e1[-1] / np.sqrt(2))
+    # initial condition
+    y0[:setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
+    y0[2 * setup.Nx: 3 * setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) * (setup.alpha_e1[-1] / np.sqrt(2))
 
     # TODO: setup # 2 with exp(-(v-1)^2) + exp((v+1)^2)
-    setup.u_e1[-1] = 1
-    setup.u_e2[-1] = -1
-    setup.alpha_e1[-1] = 0.5
-    setup.alpha_e2[-1] = 0.5
-    x_component = 1 + setup.epsilon * np.cos(setup.k0 * x_)
-    v_component = setup.n0_e1 * np.exp(-((v_ - setup.u_e1[-1]) ** 2) / (setup.alpha_e1[-1]**2)) / setup.alpha_e1[-1] \
-                + setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1]**2)) / setup.alpha_e2[-1]
-
-    setup.u_e1[-1] = 0
-    setup.alpha_e1[-1] = 1
-    # integrate
-    for nn in range(setup.Nv_e1):
-        psi = aw_psi_hermite_complement(n=nn, v=v_, alpha_s=setup.alpha_e1[-1], u_s=setup.u_e1[-1])
-        proj = scipy.integrate.trapezoid(psi * v_component / setup.alpha_e1[-1], x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * proj
+    # setup.u_e1[-1] = 1
+    # setup.u_e2[-1] = -1
+    # setup.alpha_e1[-1] = 0.5
+    # setup.alpha_e2[-1] = 0.5
+    # x_component = 1 + setup.epsilon * np.cos(setup.k0 * x_)
+    # v_component = setup.n0_e1 * np.exp(-((v_ - setup.u_e1[-1]) ** 2) / (setup.alpha_e1[-1]**2)) / setup.alpha_e1[-1] \
+    #             + setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1]**2)) / setup.alpha_e2[-1]
+    #
+    # setup.u_e1[-1] = 0
+    # setup.alpha_e1[-1] = 1
+    # # integrate
+    # for nn in range(setup.Nv_e1):
+    #     psi = aw_psi_hermite_complement(n=nn, v=v_, alpha_s=setup.alpha_e1[-1], u_s=setup.u_e1[-1])
+    #     proj = scipy.integrate.trapezoid(psi * v_component / setup.alpha_e1[-1], x=v_, dx=np.abs(v_[1] - v_[0]))
+    #     y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * proj
 
     # start timer
     start_time_cpu = time.process_time()

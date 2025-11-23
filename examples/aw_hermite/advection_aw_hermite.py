@@ -15,7 +15,6 @@ import numpy as np
 
 def rhs(y):
     A_e = setup.alpha_e[-1] * setup.A_off + setup.u_e[-1] * setup.A_diag + setup.nu * setup.A_col
-
     # evolving only electrons
     return A_e @ y
 
