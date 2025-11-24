@@ -5,7 +5,7 @@ Date: July 1st, 2025
 """
 import sys, os
 
-sys.path.append(os.path.abspath(os.path.join('..')))
+sys.path.append(os.path.abspath(os.path.join('../..')))
 
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1_legendre
@@ -72,19 +72,19 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=100,
-                                        Nv_e2=100,
+                                        Nv_e1=51,
+                                        Nv_e2=101,
                                         epsilon=1e-2,
-                                        v_a=-10,
-                                        v_b=10,
+                                        v_a=-8,
+                                        v_b=8,
                                         alpha_e1=np.sqrt(2),
                                         u_e1=0,
                                         L=20 * np.pi / 3,
                                         dt=1e-2,
                                         T0=0,
-                                        T=40,
+                                        T=30,
                                         nu_L=1,
-                                        nu_H=0,
+                                        nu_H=1,
                                         n0_e1=0.9,
                                         n0_e2=0.1,
                                         u_e2=4.5,
@@ -92,10 +92,10 @@ if __name__ == "__main__":
                                         gamma=0.5,
                                         k0=1,
                                         Nv_int=5000,
-                                        u_tol=1e-1,
-                                        alpha_tol=1e-1,
-                                        cutoff=3,
-                                        threshold_last_hermite=0.005,
+                                        u_tol=np.nan,
+                                        alpha_tol=np.nan,
+                                        cutoff=0.015,
+                                        threshold_last_hermite=0.02,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
         xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2**2)) / setup.alpha_e2
+        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1]**2)) / setup.alpha_e2[-1]
         v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
         y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (nn + 1) * setup.Nx] = \
             x_component * v_component
@@ -126,8 +126,8 @@ if __name__ == "__main__":
                                                                          max_iter=100,
                                                                          param=setup,
                                                                          bump_hermite_adapt=False,
-                                                                         bulk_hermite_adapt=True,
-                                                                         adaptive_u_and_alpha=True,
+                                                                         bulk_hermite_adapt=False,
+                                                                         adaptive_u_and_alpha=False,
                                                                          adaptive_between_hermite_and_legendre=True,
                                                                          MM1=True)
 
@@ -138,22 +138,22 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
         np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
         setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u (for the bulk Hermite)
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    np.save("../../data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
             + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
             + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)

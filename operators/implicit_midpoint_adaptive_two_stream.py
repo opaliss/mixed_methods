@@ -186,7 +186,9 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                                                                         y_curr=y_sol[:, tt - 1],
                                                                         v_a=param.v_a,
                                                                         v_b=param.v_b,
-                                                                        J=param.J_int)
+                                                                        alpha=param.alpha_e1[-1],
+                                                                        u=param.u_e1[-1],
+                                                                        Nv_int=param.Nv_int)
 
 
         y_sol[:, tt] = scipy.optimize.newton_krylov(F=lambda y: implicit_nonlinear_equation(y_new=y,
