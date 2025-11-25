@@ -40,9 +40,9 @@ def A3(Nx, Nv):
     :return: 2d array (matrix), A3 matrix in weak landau advection term
     """
     A = np.zeros((Nv, Nv))
-    for index, n in enumerate(range(Nv)):
+    for nn in range(Nv):
         # main diagonal
-        A[index, index] = nu_func(n=n, Nv=Nv)
+        A[nn, nn] = nu_func(n=nn, Nv=Nv)
     return -scipy.sparse.kron(A, scipy.sparse.identity(n=Nx), format="csr")
 
 

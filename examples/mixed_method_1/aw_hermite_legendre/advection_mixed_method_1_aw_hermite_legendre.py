@@ -1,7 +1,7 @@
 """Module to run mixed method #1 bump on tail testcase
 
 Author: Opal Issan
-Date: June 11th, 2025
+Date: Nov 25th, 2025
 """
 import sys, os
 
@@ -25,32 +25,13 @@ def rhs(y):
 
     # evolving f0 hermite
     A_e_H = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
-    dydt_[:setup.Nv_e1 * setup.Nx] = A_e_H @ y[:setup.Nv_e1 * setup.Nx] \
-                                     + nonlinear_aw_hermite(E=E,
-                                                            psi=y[:setup.Nv_e1 * setup.Nx],
-                                                            q=setup.q_e,
-                                                            m=setup.m_e,
-                                                            alpha=setup.alpha_e1[-1],
-                                                            Nv=setup.Nv_e1,
-                                                            Nx=setup.Nx)
+    dydt_[:setup.Nv_e1 * setup.Nx] = A_e_H @ y[:setup.Nv_e1 * setup.Nx]
     # evolving delta f legendre
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
-                                     + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
-                                                          Nv=setup.Nv_e2,
-                                                          Nx=setup.Nx,
-                                                          B_mat=setup.B_e_L,
-                                                          q=setup.q_e,
-                                                          m=setup.m_e,
-                                                          gamma=setup.gamma,
-                                                          v_a=setup.v_a,
-                                                          v_b=setup.v_b,
-                                                          xi_v_a=setup.xi_v_a,
-                                                          xi_v_b=setup.xi_v_b) \
                                      + extra_term_1_legendre(J_int=setup.J_int[-1, :],
                                                              v_b=setup.v_b,
                                                              v_a=setup.v_a,
-                                                             C_hermite_last=y[(
-                                                                                          setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
+                                                             C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
                                                              alpha=setup.alpha_e1[-1],
                                                              Nv_H=setup.Nv_e1,
                                                              D=setup.D,
@@ -61,9 +42,10 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=10,
-                                        Nv_e2=10,
+    setup = SimulationSetupMixedMethod1(Nx=51,
+                                        Nv_e1=80,
+                                        Nv_e2=80,
+                                        Nv_start=0,
                                         epsilon=1,
                                         v_a=-5,
                                         v_b=5,

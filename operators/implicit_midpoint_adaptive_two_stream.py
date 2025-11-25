@@ -5,7 +5,7 @@ Version: Oct 20th, 2025
 """
 import numpy as np
 import scipy
-from operators.reprojection_between_hermite_and_legendre import reprojection_aw_hermite_and_legendre
+from operators.reprojection_between_hermite_and_legendre import reprojection_aw_hermite_and_legendre, reprojection_aw_hermite_and_legendre_old
 from operators.adaptive_aw_hermite import P_case_i, check_if_update_needed, updated_u, updated_alpha, \
     get_projection_matrix
 
@@ -63,6 +63,29 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
     for tt in range(1, len(param.t_vec)):
         # print out the current time stamp
         print("\n time = ", param.t_vec[tt])
+        if adaptive_between_hermite_and_legendre:
+            if np.max(y_sol[:, tt - 1][param.Nv_e1 * param.Nx - param.Nx:param.Nv_e1 * param.Nx]) \
+                    >= param.threshold_last_hermite:
+                print("re-projection is happening between hermite and Legendre formulations!")
+                # we update the simulation
+                y_sol[:, tt - 1] = reprojection_aw_hermite_and_legendre(cutoff=param.cutoff,
+                                                                        Nx=param.Nx,
+                                                                        Nv_e1=param.Nv_e1,
+                                                                        Nv_e2=param.Nv_e2,
+                                                                        y_curr=y_sol[:, tt - 1],
+                                                                        v_a=param.v_a,
+                                                                        v_b=param.v_b,
+                                                                        alpha=param.alpha_e1[-1],
+                                                                        u=param.u_e1[-1],
+                                                                        Nv_int=param.Nv_int)
+                # y_sol[:, tt-1] = reprojection_aw_hermite_and_legendre_old(cutoff=param.cutoff,
+                #                                                           Nx=param.Nx,
+                #                                                           Nv_e1=param.Nv_e1,
+                #                                                           Nv_e2=param.Nv_e2,
+                #                                                           y_curr=y_sol[:, tt - 1],
+                #                                                           v_a=param.v_a,
+                #                                                           v_b=param.v_b,
+                #                                                           J=param.J_int)
         if adaptive_u_and_alpha:
             if bulk_hermite_adapt:
                 # updated u (electron 1) parameter
@@ -174,21 +197,6 @@ def implicit_midpoint_solver_adaptive_two_stream(y_0, right_hand_side, param, r_
                 param.add_alpha_e2(alpha_e2_curr=param.alpha_e2[-1])
                 param.add_u_e2(u_e2_curr=param.u_e2[-1])
 
-        if adaptive_between_hermite_and_legendre:
-            if np.max(y_sol[:, tt - 1][param.Nv_e1 * param.Nx - param.Nx:param.Nv_e1 * param.Nx]) \
-                    >= param.threshold_last_hermite:
-                print("re-projection is happening between hermite and Legendre formulations!")
-                # we update the simulation
-                y_sol[:, tt - 1] = reprojection_aw_hermite_and_legendre(cutoff=param.cutoff,
-                                                                        Nx=param.Nx,
-                                                                        Nv_e1=param.Nv_e1,
-                                                                        Nv_e2=param.Nv_e2,
-                                                                        y_curr=y_sol[:, tt - 1],
-                                                                        v_a=param.v_a,
-                                                                        v_b=param.v_b,
-                                                                        alpha=param.alpha_e1[-1],
-                                                                        u=param.u_e1[-1],
-                                                                        Nv_int=param.Nv_int)
 
 
         y_sol[:, tt] = scipy.optimize.newton_krylov(F=lambda y: implicit_nonlinear_equation(y_new=y,

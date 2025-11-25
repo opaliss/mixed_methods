@@ -54,13 +54,13 @@ def A1_legendre(D, Nv, v_a, v_b):
     :return: 2d array (matrix), A1 matrix in advection term
     """
     A = np.zeros((Nv, Nv))
-    for n in range(Nv):
-        if n != 0:
+    for nn in range(Nv):
+        if nn != 0:
             # lower diagonal
-            A[n, n - 1] = sigma_v1(n=n, v_a=v_a, v_b=v_b)
-        if n != Nv - 1:
+            A[nn, nn - 1] = sigma_v1(n=nn, v_a=v_a, v_b=v_b)
+        if nn != Nv - 1:
             # upper diagonal
-            A[n, n + 1] = sigma_v1(n=n + 1, v_a=v_a, v_b=v_b)
+            A[nn, nn + 1] = sigma_v1(n=nn + 1, v_a=v_a, v_b=v_b)
     return -scipy.sparse.kron(A, D, format="csr")
 
 

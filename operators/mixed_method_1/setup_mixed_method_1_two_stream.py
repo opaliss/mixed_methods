@@ -7,7 +7,7 @@ Last Update: June 27th, 2025
 """
 import numpy as np
 from operators.legendre.legendre_operators import A1_legendre, sigma_bar, B_legendre, xi_legendre
-from operators.aw_hermite.aw_hermite_operators import A1_hermite, aw_psi_hermite, aw_psi_hermite_complement
+from operators.aw_hermite.aw_hermite_operators import A1_hermite, aw_psi_hermite, aw_psi_hermite_complement, B_hermite
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 import scipy
@@ -15,7 +15,8 @@ import scipy
 
 class SimulationSetupMixedMethod1:
     def __init__(self, Nx, Nv_e1, Nv_e2, epsilon, v_a, v_b, alpha_e1, u_e1, gamma, L, dt, T0, T, nu_H, nu_L,
-                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0, cutoff=3, threshold_last_hermite=np.inf,
+                 u_tol, alpha_tol, n0_e1, n0_e2, u_e2, alpha_e2, k0,
+                 cutoff=3, threshold_last_hermite=np.inf,
                  Nv_int=int(1e4), m_e=1, m_i=1836, q_e=-1, q_i=1, problem_dir=None, construct_integrals=True):
         # velocity grid
         # set up configuration parameters
@@ -82,9 +83,10 @@ class SimulationSetupMixedMethod1:
         self.D_inv = get_D_inv(Nx=self.Nx, D=self.D)
 
         # Hermite operator
-        self.A_eH_diag = A2(D=self.D, Nv=self.Nv_e1)
-        self.A_eH_off = A1_hermite(D=self.D, Nv=self.Nv_e1)
-        self.A_eH_col = A3(Nx=self.Nx, Nv=self.Nv_e1)
+        self.A_e_H_diag = A2(D=self.D, Nv=self.Nv_e1)
+        self.A_e_H_off = A1_hermite(D=self.D, Nv=self.Nv_e1)
+        self.A_e_H_col = A3(Nx=self.Nx, Nv=self.Nv_e1)
+        self.B_e_H = B_hermite(Nv=self.Nv_e1, q=self.q_e, m=self.m_e)
 
         # Legendre operators
         self.A_e_L = A1_legendre(D=self.D, Nv=self.Nv_e2, v_a=v_a, v_b=v_b) \

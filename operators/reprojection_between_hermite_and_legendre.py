@@ -66,7 +66,14 @@ def reprojection_aw_hermite_and_legendre(cutoff, Nx, Nv_e1, Nv_e2, y_curr, v_a, 
     convolved_f = scipy.ndimage.convolve1d(f0 + df, psi0, axis=1) / len(v_)
 
     f0_new = f0 + df
-    f0_new[np.where(convolved_f < cutoff)] = 0
+    idx = np.where(convolved_f < cutoff)
+    # # for bump on tail let the bottom part stay intact
+    # y_ = idx[1][np.where(idx[1] > len(v_) // 2)]
+    # x_ = idx[0][np.where(idx[1] > len(v_) // 2)]
+    # f0_new[x_, y_] = 0
+
+    # or
+    f0_new[idx] = 0
 
     for nn in range(Nv_e1//2):
         new_solution[nn*Nx: (nn+1)*Nx] = \
@@ -78,10 +85,7 @@ def reprojection_aw_hermite_and_legendre(cutoff, Nx, Nv_e1, Nv_e2, y_curr, v_a, 
         new_solution[Nx*Nv_e1 + mm*Nx: Nx*Nv_e1 + (mm+1)*Nx] = \
             scipy.integrate.trapezoid(df_new * xi_legendre(n=mm, v=v_, v_a=v_a, v_b=v_b), x=v_, dx=np.abs(v_[1]-v_[0])) / (v_b -v_a)
 
-    if np.sum(np.abs(new_solution[Nx * (Nv_e1 - 1): Nx*Nv_e1])) > np.sum(np.abs(y_curr[Nx * (Nv_e1 - 1): Nx*Nv_e1])):
-        return y_curr
-    else:
-        return new_solution
+    return new_solution
 
 
 def reprojection_adaptive_in_space_aw_hermite_and_legendre(cutoff, Nx, Nv_e1, Nv_e2, y_curr, v_a, v_b, J):

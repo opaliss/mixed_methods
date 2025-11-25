@@ -92,9 +92,9 @@ if __name__ == "__main__":
                                         gamma=0.5,
                                         k0=1,
                                         Nv_int=5000,
-                                        u_tol=np.nan,
-                                        alpha_tol=np.nan,
-                                        cutoff=0.015,
+                                        u_tol=0.1,
+                                        alpha_tol=0.1,
+                                        cutoff=0.017,
                                         threshold_last_hermite=0.02,
                                         construct_integrals=True)
 

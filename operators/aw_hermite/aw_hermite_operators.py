@@ -1,7 +1,7 @@
 """module with Hermite functions and operators
 
 Author: Opal Issan (oissan@ucsd.edu)
-Last Update: June 6th, 2025
+Last Update: Nov 25th, 2025
 """
 import numpy as np
 import scipy
@@ -117,6 +117,21 @@ def A1_hermite(D, Nv):
     return -scipy.sparse.kron(A, D, format="csr")
 
 
+def B_hermite(Nv,  q, m):
+    """
+
+    :param Nv:
+    :param alpha:
+    :param q: float, charge of particles
+    :param m: float, mass of particles
+    :return:
+    """
+    B = np.zeros((Nv, Nv))
+    for nn in range(Nv):
+        B[nn, nn-1] = q / m * np.sqrt(2 * nn)
+    return B
+
+
 def nonlinear_aw_hermite(E, psi, q, m, alpha, Nv, Nx):
     """compute acceleration term (nonlinear)
 
@@ -131,8 +146,7 @@ def nonlinear_aw_hermite(E, psi, q, m, alpha, Nv, Nx):
     """
     res = np.zeros(len(psi))
     for n in range(Nv):
-        if n != 0:
-            res[n * Nx: (n + 1) * Nx] = q / m / alpha * np.sqrt(2 * n) * E * psi[(n - 1) * Nx: n * Nx]
+        res[n * Nx: (n + 1) * Nx] = q / m / alpha * np.sqrt(2 * n) * E * psi[(n - 1) * Nx: n * Nx]
     return res
 
 

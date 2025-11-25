@@ -22,8 +22,9 @@ def extra_term_1_legendre(J_int, v_b, v_a, C_hermite_last, alpha, Nv_H, D, E, Nv
     :return:
     """
     A = -alpha / (v_b - v_a) * np.sqrt(Nv_H / 2) * (D @ C_hermite_last + 2 / (alpha ** 2) * E * C_hermite_last)
-    sol_ = np.zeros(Nx * Nv_L)
-    for ii in range(Nv_L):
-        sol_[ii*Nx: (ii+1)*Nx] = J_int[ii] * A
+    # sol_ = np.zeros(Nx * Nv_L)
+    # for ii in range(Nv_L):
+    #     sol_[ii*Nx: (ii+1)*Nx] = J_int[ii] * A
+    sol_ = np.kron(J_int, A)
     return sol_
 
