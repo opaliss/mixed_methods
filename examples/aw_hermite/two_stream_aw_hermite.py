@@ -7,11 +7,12 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite, charge_density_aw_hermite
+from operators.aw_hermite.aw_hermite_operators import charge_density_aw_hermite
 from operators.aw_hermite.setup_aw_hermite import SimulationSetupHermite
 from operators.implicit_midpoint_adaptive_single_stream import implicit_midpoint_solver_adaptive_single_stream
 from operators.poisson_solver import gmres_solver
 import time
+import scipy
 import numpy as np
 
 
@@ -30,8 +31,7 @@ def rhs(y):
     A_e = setup.alpha_e[-1] * setup.A_off + setup.u_e[-1] * setup.A_diag + setup.nu * setup.A_col
 
     # evolving only electrons
-    return A_e @ y + nonlinear_aw_hermite(E=E, psi=y, Nv=setup.Nv, Nx=setup.Nx, alpha=setup.alpha_e[-1],
-                                          q=setup.q_e, m=setup.m_e)
+    return A_e @ y + (scipy.sparse.kron(setup.B, scipy.sparse.diags(E, offsets=0)) @ y) / setup.alpha_e[-1]
 
 
 if __name__ == "__main__":

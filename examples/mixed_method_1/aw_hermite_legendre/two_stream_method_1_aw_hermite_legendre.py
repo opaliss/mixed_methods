@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1_legendre
 from operators.legendre.legendre_operators import nonlinear_legendre
-from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
@@ -26,8 +25,7 @@ def rhs(y):
                                                    v_a=setup.v_a,
                                                    v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx:
-                                                                   (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -37,7 +35,7 @@ def rhs(y):
     # evolving bulk aw_hermite
     A_eH = setup.u_e1[-1] * setup.A_e_H_diag + setup.alpha_e1[-1] * setup.A_e_H_off + setup.nu_H * setup.A_e_H_col
     dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] \
-                                    + scipy.sparse.kron(setup.B_e_H, np.diag(E)) @ y[:setup.Nv_e1 * setup.Nx] / setup.alpha_e1[-1]
+                                    + scipy.sparse.kron(setup.B_e_H, scipy.sparse.diags(E, offsets=0)) @ y[:setup.Nv_e1 * setup.Nx] / setup.alpha_e1[-1]
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
                                      + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
@@ -66,6 +64,7 @@ def rhs(y):
 
 if __name__ == "__main__":
     for Nv in [8, 16, 32, 64, 128, 256]:
+        print("Run with Nv=", Nv)
         setup = SimulationSetupMixedMethod1(Nx=101,
                                             Nv_e1=Nv,
                                             Nv_e2=Nv,
@@ -95,31 +94,11 @@ if __name__ == "__main__":
 
         # initial condition: read in result from previous simulation
         y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
-        # grid
+        # spatial grid
         x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-        v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=False)
-
-        # TODO: setup #1 with v^2\exp(-v^2)
         # initial condition
         y0[:setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
         y0[2 * setup.Nx: 3 * setup.Nx] = (1 + setup.epsilon * np.cos(setup.k0 * x_)) * (setup.alpha_e1[-1] / np.sqrt(2))
-
-        # TODO: setup # 2 with exp(-(v-1)^2) + exp((v+1)^2)
-        # setup.u_e1[-1] = 1
-        # setup.u_e2[-1] = -1
-        # setup.alpha_e1[-1] = 0.5
-        # setup.alpha_e2[-1] = 0.5
-        # x_component = 1 + setup.epsilon * np.cos(setup.k0 * x_)
-        # v_component = setup.n0_e1 * np.exp(-((v_ - setup.u_e1[-1]) ** 2) / (setup.alpha_e1[-1]**2)) / setup.alpha_e1[-1] \
-        #             + setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1]**2)) / setup.alpha_e2[-1]
-        #
-        # setup.u_e1[-1] = 0
-        # setup.alpha_e1[-1] = 1
-        # # integrate
-        # for nn in range(setup.Nv_e1):
-        #     psi = aw_psi_hermite_complement(n=nn, v=v_, alpha_s=setup.alpha_e1[-1], u_s=setup.u_e1[-1])
-        #     proj = scipy.integrate.trapezoid(psi * v_component / setup.alpha_e1[-1], x=v_, dx=np.abs(v_[1] - v_[0]))
-        #     y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * proj
 
         # start timer
         start_time_cpu = time.process_time()

@@ -4,7 +4,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 Last Update: June 6th, 2025
 """
 import numpy as np
-from operators.aw_hermite.aw_hermite_operators import A1_hermite
+from operators.aw_hermite.aw_hermite_operators import A1_hermite, B_hermite
 from operators.universal_functions import get_D_inv, A2, A3
 from operators.finite_difference import ddx_central
 
@@ -62,6 +62,7 @@ class SimulationSetupHermite:
         self.A_diag = A2(D=self.D, Nv=self.Nv)
         self.A_off = A1_hermite(D=self.D, Nv=self.Nv)
         self.A_col = A3(Nx=self.Nx, Nv=self.Nv)
+        self.B = B_hermite(Nv=self.Nv, q=self.q_e, m=self.m_e)
 
     def add_alpha_e(self, alpha_e_curr):
         self.alpha_e.append(alpha_e_curr)

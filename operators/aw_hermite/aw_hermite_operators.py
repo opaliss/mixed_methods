@@ -120,8 +120,7 @@ def A1_hermite(D, Nv):
 def B_hermite(Nv,  q, m):
     """
 
-    :param Nv:
-    :param alpha:
+    :param Nv: int, spectral resolution in velocity
     :param q: float, charge of particles
     :param m: float, mass of particles
     :return:
@@ -129,7 +128,7 @@ def B_hermite(Nv,  q, m):
     B = np.zeros((Nv, Nv))
     for nn in range(Nv):
         B[nn, nn-1] = q / m * np.sqrt(2 * nn)
-    return B
+    return scipy.sparse.csr_matrix(B)
 
 
 def nonlinear_aw_hermite(E, psi, q, m, alpha, Nv, Nx):
