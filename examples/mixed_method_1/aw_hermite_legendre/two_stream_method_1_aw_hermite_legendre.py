@@ -56,9 +56,7 @@ def rhs(y):
                                                              alpha=setup.alpha_e1[-1],
                                                              Nv_H=setup.Nv_e1,
                                                              D=setup.D,
-                                                             E=E,
-                                                             Nv_L=setup.Nv_e2,
-                                                             Nx=setup.Nx)
+                                                             E=E)
     return dydt_
 
 

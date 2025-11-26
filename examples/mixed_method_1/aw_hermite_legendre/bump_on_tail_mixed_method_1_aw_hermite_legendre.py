@@ -1,7 +1,7 @@
 """Module to run mixed method #1 bump on tail testcase
 
 Author: Opal Issan
-Date: July 1st, 2025
+Date: Nov 25th, 2025
 """
 import sys, os
 
@@ -10,7 +10,6 @@ sys.path.append(os.path.abspath(os.path.join('../..')))
 from operators.mixed_method_0.mixed_method_0_operators import charge_density_two_stream_mixed_method_0
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1_legendre
 from operators.legendre.legendre_operators import nonlinear_legendre, xi_legendre
-from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint_adaptive_two_stream import implicit_midpoint_solver_adaptive_two_stream
 from operators.poisson_solver import gmres_solver
@@ -26,8 +25,7 @@ def rhs(y):
                                                    v_a=setup.v_a,
                                                    v_b=setup.v_b,
                                                    C0_e_hermite=y[:setup.Nx],
-                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx:
-                                                                   (setup.Nv_e1 + 1) * setup.Nx])
+                                                   C0_e_legendre=y[setup.Nv_e1 * setup.Nx: (setup.Nv_e1 + 1) * setup.Nx])
 
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=setup.D, D_inv=setup.D_inv, a_tol=1e-12, r_tol=1e-12)
@@ -35,15 +33,9 @@ def rhs(y):
     dydt_ = np.zeros(len(y))
 
     # evolving bulk aw_hermite
-    A_eH = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
+    A_eH = setup.u_e1[-1] * setup.A_e_H_diag + setup.alpha_e1[-1] * setup.A_e_H_off + setup.nu_H * setup.A_e_H_col
     dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] \
-                                     + nonlinear_aw_hermite(E=E,
-                                                            psi=y[:setup.Nv_e1 * setup.Nx],
-                                                            q=setup.q_e,
-                                                            m=setup.m_e,
-                                                            alpha=setup.alpha_e1[-1],
-                                                            Nv=setup.Nv_e1,
-                                                            Nx=setup.Nx)
+                                     + scipy.sparse.kron(setup.B_e_H, scipy.sparse.diags(E, offsets=0)) @ y[:setup.Nv_e1 * setup.Nx] / setup.alpha_e1[-1]
 
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
                                      + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
@@ -64,38 +56,32 @@ def rhs(y):
                                                              alpha=setup.alpha_e1[-1],
                                                              Nv_H=setup.Nv_e1,
                                                              D=setup.D,
-                                                             E=E,
-                                                             Nv_L=setup.Nv_e2,
-                                                             Nx=setup.Nx)
+                                                             E=E)
     return dydt_
 
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=51,
-                                        Nv_e2=101,
+                                        Nv_e1=50,
+                                        Nv_e2=100,
                                         epsilon=1e-2,
-                                        v_a=-8,
-                                        v_b=8,
-                                        alpha_e1=np.sqrt(2),
-                                        u_e1=0,
-                                        L=20 * np.pi / 3,
+                                        v_a=4,
+                                        v_b=15,
+                                        L=20 * np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=30,
+                                        T=35,
                                         nu_L=1,
                                         nu_H=1,
-                                        n0_e1=0.9,
-                                        n0_e2=0.1,
-                                        u_e2=4.5,
-                                        alpha_e2=1/np.sqrt(2),
+                                        n0_e1=0.99,
+                                        n0_e2=0.01,
+                                        u_e1=0,
+                                        u_e2=10,
+                                        alpha_e1=np.sqrt(2),
+                                        alpha_e2=np.sqrt(2),
                                         gamma=0.5,
-                                        k0=1,
+                                        k0=0.1,
                                         Nv_int=5000,
-                                        u_tol=0.1,
-                                        alpha_tol=0.1,
-                                        cutoff=0.017,
-                                        threshold_last_hermite=0.02,
                                         construct_integrals=True)
 
     # initial condition: read in result from previous simulation
@@ -104,7 +90,7 @@ if __name__ == "__main__":
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
     # initial condition
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ * 2 * np.pi / setup.L)) / setup.alpha_e1[-1]
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ / setup.L * 2 * np.pi)) / setup.alpha_e1[-1]
     # beam electrons => legendre
     x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
@@ -128,7 +114,7 @@ if __name__ == "__main__":
                                                                          bump_hermite_adapt=False,
                                                                          bulk_hermite_adapt=False,
                                                                          adaptive_u_and_alpha=False,
-                                                                         adaptive_between_hermite_and_legendre=True,
+                                                                         adaptive_between_hermite_and_legendre=False,
                                                                          MM1=True)
 
     end_time_cpu = time.process_time() - start_time_cpu
