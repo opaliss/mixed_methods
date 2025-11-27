@@ -118,9 +118,8 @@ def nonlinear_legendre(E, psi, B_mat, q, m, Nv, Nx, gamma, v_a, v_b, xi_v_a, xi_
     construct_f_vb = construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_b)
     construct_f_va = construct_f(state=psi, Nv=Nv, Nx=Nx, xi=xi_v_a)
 
-    res_boundary = - gamma / (v_b - v_a) * (np.kron(xi_v_b, construct_f_vb) - np.kron(xi_v_a, construct_f_va))
-    # for conservation laws purposes
-    res_boundary[:3*Nx] = np.zeros(3*Nx)
+    res_boundary = np.zeros(len(res_acc))
+    res_boundary[3*Nx:] = - gamma / (v_b - v_a) * (np.kron(xi_v_b[3:], construct_f_vb) - np.kron(xi_v_a[3:], construct_f_va))
 
     return ((res_acc + res_boundary).reshape(Nv, Nx) * q / m * E).flatten()
 

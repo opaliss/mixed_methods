@@ -33,8 +33,8 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupLegendre(Nx=101,
-                                    Nv_e=250,
-                                    epsilon=1e-2,
+                                    Nv_e=200,
+                                    epsilon=1e-4,
                                     v_a=-5,
                                     v_b=15,
                                     alpha_e1=np.sqrt(2),
@@ -48,8 +48,8 @@ if __name__ == "__main__":
                                     dt=1e-2,
                                     Nv_int=5000,
                                     T0=0,
-                                    T=70,
-                                    nu=1,
+                                    T=120,
+                                    nu=5,
                                     gamma=0.5)
 
     # initial condition: read in result from previous simulation
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     # first electron 1 species (perturbed)
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
-    x_component_bulk = (1 + setup.epsilon * np.cos(x_ * setup.k0 / setup.L * 2 * np.pi)) / (
+    x_component_bulk = (1 + setup.epsilon * np.cos(x_ * setup.k0)) / (
                 setup.v_b - setup.v_a) / np.sqrt(np.pi)
     x_component_beam = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e):

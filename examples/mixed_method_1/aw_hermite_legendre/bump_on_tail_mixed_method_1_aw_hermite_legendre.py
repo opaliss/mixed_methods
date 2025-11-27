@@ -62,17 +62,17 @@ def rhs(y):
 
 if __name__ == "__main__":
     setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=50,
+                                        Nv_e1=16,
                                         Nv_e2=100,
-                                        epsilon=1e-2,
+                                        epsilon=1e-4,
                                         v_a=4,
                                         v_b=15,
                                         L=20 * np.pi,
                                         dt=1e-2,
                                         T0=0,
-                                        T=35,
-                                        nu_L=1,
-                                        nu_H=1,
+                                        T=120,
+                                        nu_L=15,
+                                        nu_H=2,
                                         n0_e1=0.99,
                                         n0_e2=0.01,
                                         u_e1=0,
@@ -90,7 +90,7 @@ if __name__ == "__main__":
     x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
     v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
     # initial condition
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_ / setup.L * 2 * np.pi)) / setup.alpha_e1[-1]
+    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
     # beam electrons => legendre
     x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
     for nn in range(setup.Nv_e2):
@@ -125,21 +125,24 @@ if __name__ == "__main__":
 
     # save the runtime
     np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-            setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T),
+            setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+            "_" + str(setup.T0) + "_" + str(setup.T),
         np.array([end_time_cpu, end_time_wall]))
 
     # save results
     np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
+        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+            "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
     np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+            "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
     # save time varying alpha and u (for the bulk Hermite)
     np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_"
+            + str(setup.v_b) + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
     np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
+            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+             "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
