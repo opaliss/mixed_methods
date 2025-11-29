@@ -3,3 +3,95 @@
 Last modified: Nov 26th, 2025
 Author: Opal Issan (oissan@ucsd.edu)
 """
+import sys, os
+
+sys.path.append(os.path.abspath(os.path.join('..')))
+
+from operators.finite_difference import ddx_central
+from operators.universal_functions import get_D_inv
+from operators.poisson_solver import gmres_solver
+from operators.implicit_midpoint_adaptive_single_stream_finite_difference import \
+    implicit_midpoint_solver_adaptive_single_stream_finite_differencing
+import time
+import numpy as np
+
+
+def rhs(y):
+    # charge density computed
+    rho = np.sum(y, axis=1) * dv
+    # electric field computed (poisson solver)
+    E = gmres_solver(rhs=rho, D=Dx, D_inv=Dx_inv, a_tol=1e-12, r_tol=1e-12)
+    advection = - V * (Dx @ y)
+    acceleration = E[:, None] * (Dv @ y.T).T
+    return advection + acceleration
+
+
+if __name__ == "__main__":
+    # simulation parameters
+    Nx = 101
+    Nv = 201
+    L = 20 * np.pi
+    v_a = -5
+    v_b = 15
+    epsilon = 1e-4
+    k0 = 0.1
+    n0_e1 = 0.99
+    n0_e2 = 0.01
+    u_e1 = 0
+    u_e2 = 10
+    alpha_e1 = np.sqrt(2)
+    alpha_e2 = np.sqrt(2)
+    T = 120
+    dt = 0.01
+    t_vec = np.linspace(0, T, int(T/dt) + 1, endpoint=True)
+
+    # x-v space
+    x = np.linspace(0, L, Nx, endpoint=True)
+    v = np.linspace(v_a, v_b, Nv, endpoint=True)
+    V = np.outer(np.ones(Nx), v)
+    dx = np.abs(x[1] - x[0])
+    dv = np.abs(v[1] - v[0])
+
+    # simulation operators
+    Dx = ddx_central(Nx=Nx + 1, dx=dx, periodic=True, order=2)
+    Dx_inv = get_D_inv(Nx=Nx, D=Dx)
+    Dv = ddx_central(Nx=Nv, dx=dv, periodic=False, order=2)
+
+    # initial condition
+    x_bulk = (1 + epsilon * np.cos(x * k0)) / np.sqrt(np.pi)
+    x_beam = 1 / np.sqrt(np.pi)
+    v_bulk = n0_e1 * np.exp(-((v - u_e1) ** 2) / (alpha_e1 ** 2)) / alpha_e1
+    v_beam = n0_e2 * np.exp(-((v - u_e2) ** 2) / (alpha_e2 ** 2)) / alpha_e2
+
+    bump = np.outer(x_bulk, v_bulk)
+    bulk = np.outer(x_beam, v_beam)
+    Y0 = bump + bulk
+
+    # start timer
+    start_time_cpu = time.process_time()
+    start_time_wall = time.time()
+
+    # integrate (implicit midpoint)
+    sol_midpoint_u = implicit_midpoint_solver_adaptive_single_stream_finite_differencing(Y0=Y0,
+                                                                                         right_hand_side=rhs,
+                                                                                         a_tol=1e-10,
+                                                                                         r_tol=1e-10,
+                                                                                         max_iter=100,
+                                                                                         t_vec=t_vec)
+
+    end_time_cpu = time.process_time() - start_time_cpu
+    end_time_wall = time.time() - start_time_wall
+
+    print("runtime cpu = ", end_time_cpu)
+    print("runtime wall = ", end_time_wall)
+
+    # save the runtime
+    np.save("../../data/finite_difference/bump_on_tail/sol_runtime_Nv_" + str(Nv) + "_Nx_" + str(Nx)
+            + "_" + str(T), np.array([end_time_cpu, end_time_wall]))
+
+    # save results
+    np.save("../../data/finite_difference/bump_on_tail/sol_u_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_"
+         + "_" + str(T), sol_midpoint_u)
+
+    np.save("../../data/finite_difference/bump_on_tail/sol_t_Nv_" + str(Nv) + "_Nx_" + str(Nx)
+            + "_" + str(T), t_vec)
