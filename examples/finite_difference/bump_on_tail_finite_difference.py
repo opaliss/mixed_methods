@@ -7,7 +7,7 @@ import sys, os
 
 sys.path.append(os.path.abspath(os.path.join('..')))
 
-from operators.finite_difference import ddx_central
+from operators.finite_difference import ddx_central, d2dx2_central, ddx_fwd
 from operators.universal_functions import get_D_inv
 from operators.poisson_solver import gmres_solver
 from operators.implicit_midpoint_adaptive_single_stream_finite_difference import \
@@ -18,18 +18,18 @@ import numpy as np
 
 def rhs(y):
     # charge density computed
-    rho = np.sum(y, axis=1) * dv
+    rho = -np.sum(y, axis=1) * dv
     # electric field computed (poisson solver)
     E = gmres_solver(rhs=rho, D=Dx, D_inv=Dx_inv, a_tol=1e-12, r_tol=1e-12)
-    advection = - V * (Dx @ y)
-    acceleration = E[:, None] * (Dv @ y.T).T
+    advection = -Dx @ (V * y)
+    acceleration = (Dv @ (E[:, None] * y).T).T
     return advection + acceleration
 
 
 if __name__ == "__main__":
     # simulation parameters
     Nx = 101
-    Nv = 201
+    Nv = 15000
     L = 20 * np.pi
     v_a = -5
     v_b = 15
@@ -41,19 +41,20 @@ if __name__ == "__main__":
     u_e2 = 10
     alpha_e1 = np.sqrt(2)
     alpha_e2 = np.sqrt(2)
+    nu = 0
     T = 120
     dt = 0.01
     t_vec = np.linspace(0, T, int(T/dt) + 1, endpoint=True)
 
     # x-v space
-    x = np.linspace(0, L, Nx, endpoint=True)
+    x = np.linspace(0, L, Nx, endpoint=False)
     v = np.linspace(v_a, v_b, Nv, endpoint=True)
     V = np.outer(np.ones(Nx), v)
     dx = np.abs(x[1] - x[0])
     dv = np.abs(v[1] - v[0])
 
     # simulation operators
-    Dx = ddx_central(Nx=Nx + 1, dx=dx, periodic=True, order=2)
+    Dx = ddx_central(Nx=Nx+1, dx=dx, periodic=True, order=2)
     Dx_inv = get_D_inv(Nx=Nx, D=Dx)
     Dv = ddx_central(Nx=Nv, dx=dv, periodic=False, order=2)
 
@@ -77,7 +78,8 @@ if __name__ == "__main__":
                                                                                          a_tol=1e-10,
                                                                                          r_tol=1e-10,
                                                                                          max_iter=100,
-                                                                                         t_vec=t_vec)
+                                                                                         t_vec=t_vec,
+                                                                                         skip_save=200)
 
     end_time_cpu = time.process_time() - start_time_cpu
     end_time_wall = time.time() - start_time_wall
@@ -86,12 +88,12 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("../../data/finite_difference/bump_on_tail/sol_runtime_Nv_" + str(Nv) + "_Nx_" + str(Nx)
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/finite_difference/bump_on_tail/sol_runtime_Nv_" + str(Nv) + "_Nx_" + str(Nx)
             + "_" + str(T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("../../data/finite_difference/bump_on_tail/sol_u_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_"
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/finite_difference/bump_on_tail/sol_u_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_"
          + "_" + str(T), sol_midpoint_u)
 
-    np.save("../../data/finite_difference/bump_on_tail/sol_t_Nv_" + str(Nv) + "_Nx_" + str(Nx)
+    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/finite_difference/bump_on_tail/sol_t_Nv_" + str(Nv) + "_Nx_" + str(Nx)
             + "_" + str(T), t_vec)

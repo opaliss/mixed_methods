@@ -124,13 +124,13 @@ def ddx_central(Nx, dx, periodic, order):
         if periodic:
             A[0, -1] = -1
             A[-1, 0] = 1
-        else:
-            A[0, 0] = -3
-            A[0, 1] = 4
-            A[0, 2] = -1
-            A[-1, -1] = 3
-            A[-1, -2] = -4
-            A[-1, -3] = 1
+        # else:
+        #     A[0, 0] = -3
+        #     A[0, 1] = 4
+        #     A[0, 2] = -1
+        #     A[-1, -1] = 3
+        #     A[-1, -2] = -4
+        #     A[-1, -3] = 1
         A /= (2 * dx)
         return csr_matrix(A)
     elif order == 4:
