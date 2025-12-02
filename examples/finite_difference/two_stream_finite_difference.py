@@ -5,7 +5,7 @@ Author: Opal Issan (oissan@ucsd.edu)
 """
 import sys, os
 
-sys.path.append(os.path.abspath(os.path.join('..')))
+sys.path.append(os.path.abspath(os.path.join('../..')))
 
 from operators.finite_difference import ddx_central
 from operators.universal_functions import get_D_inv
@@ -29,7 +29,7 @@ def rhs(y):
 if __name__ == "__main__":
     # simulation parameters
     Nx = 101
-    Nv = 15000
+    Nv = 60000
     L = 4 * np.pi
     v_a = -4
     v_b = 4
@@ -80,12 +80,8 @@ if __name__ == "__main__":
     print("runtime wall = ", end_time_wall)
 
     # save the runtime
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/finite_difference/two_stream/sol_runtime_Nv_" + str(Nv) + "_Nx_" + str(Nx)
-            + "_" + str(T), np.array([end_time_cpu, end_time_wall]))
+    np.save("sol_runtime_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_" + str(T), np.array([end_time_cpu, end_time_wall]))
 
     # save results
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/finite_difference/two_stream/sol_u_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_"
-         + "_" + str(T), sol_midpoint_u)
-
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/finite_difference/two_stream/sol_t_Nv_" + str(Nv) + "_Nx_" + str(Nx)
-            + "_" + str(T), t_vec)
+    np.save("sol_u_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_" + str(T), sol_midpoint_u)
+    np.save("sol_t_Nv_" + str(Nv) + "_Nx_" + str(Nx) + "_" + str(T), t_vec)
