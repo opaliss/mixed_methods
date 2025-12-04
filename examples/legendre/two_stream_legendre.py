@@ -1,7 +1,7 @@
 """Module to run Legendre bump on tail testcase
 
 Author: Opal Issan
-Date: Nov 24th, 2025
+Date: Dec 4th, 2025
 """
 import sys, os
 
