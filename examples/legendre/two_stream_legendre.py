@@ -35,66 +35,65 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in [512]:
-        setup = SimulationSetupLegendre(Nx=101,
-                                        Nv_e=Nv,
-                                        epsilon=1e-2,
-                                        v_a=-4,
-                                        v_b=4,
-                                        alpha_e1=np.sqrt(2),
-                                        alpha_e2=np.sqrt(2),
-                                        u_e1=0,
-                                        u_e2=0,
-                                        n0_e1=1,
-                                        n0_e2=0,
-                                        k0=0.5,
-                                        L=4 * np.pi,
-                                        dt=1e-2,
-                                        Nv_int=5000,
-                                        T0=0,
-                                        T=35,
-                                        nu=1,
-                                        gamma=0.5)
+    setup = SimulationSetupLegendre(Nx=101,
+                                    Nv_e=4096,
+                                    epsilon=1e-2,
+                                    v_a=-4,
+                                    v_b=4,
+                                    alpha_e1=np.sqrt(2),
+                                    alpha_e2=np.sqrt(2),
+                                    u_e1=0,
+                                    u_e2=0,
+                                    n0_e1=1,
+                                    n0_e2=0,
+                                    k0=0.5,
+                                    L=4 * np.pi,
+                                    dt=1e-2,
+                                    Nv_int=5000,
+                                    T0=0,
+                                    T=35,
+                                    nu=1,
+                                    gamma=0.5)
 
-        # initial condition: read in result from previous simulation
-        y0 = np.zeros(setup.Nv_e * setup.Nx)
-        # first electron 1 species (perturbed)
-        x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-        v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
-        x_component = (1 + setup.epsilon * np.cos(x_ * setup.k0)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
-        v_component1 = (v_ ** 2) * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1 ** 2)) / setup.alpha_e1
+    # initial condition: read in result from previous simulation
+    y0 = np.zeros(setup.Nv_e * setup.Nx)
+    # first electron 1 species (perturbed)
+    x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
+    x_component = (1 + setup.epsilon * np.cos(x_ * setup.k0)) / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+    v_component1 = (v_ ** 2) * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1 ** 2)) / setup.alpha_e1
 
-        for nn in range(setup.Nv_e):
-            xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-            v_component = scipy.integrate.trapezoid(xi * v_component1, x=v_, dx=np.abs(v_[1] - v_[0]))
-            y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
+    for nn in range(setup.Nv_e):
+        xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
+        v_component = scipy.integrate.trapezoid(xi * v_component1, x=v_, dx=np.abs(v_[1] - v_[0]))
+        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component * v_component
 
-        # start timer
-        start_time_cpu = time.process_time()
-        start_time_wall = time.time()
+    # start timer
+    start_time_cpu = time.process_time()
+    start_time_wall = time.time()
 
-        # integrate (implicit midpoint)
-        sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_single_stream(y_0=y0,
-                                                                                right_hand_side=rhs,
-                                                                                a_tol=1e-10,
-                                                                                r_tol=1e-10,
-                                                                                max_iter=100,
-                                                                                param=setup,
-                                                                                adaptive=False)
+    # integrate (implicit midpoint)
+    sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_single_stream(y_0=y0,
+                                                                            right_hand_side=rhs,
+                                                                            a_tol=1e-10,
+                                                                            r_tol=1e-10,
+                                                                            max_iter=100,
+                                                                            param=setup,
+                                                                            adaptive=False)
 
-        end_time_cpu = time.process_time() - start_time_cpu
-        end_time_wall = time.time() - start_time_wall
+    end_time_cpu = time.process_time() - start_time_cpu
+    end_time_wall = time.time() - start_time_wall
 
-        print("runtime cpu = ", end_time_cpu)
-        print("runtime wall = ", end_time_wall)
+    print("runtime cpu = ", end_time_cpu)
+    print("runtime wall = ", end_time_wall)
 
-        # save the runtime
-        np.save("../../data/legendre/two_stream/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
-                + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+    # save the runtime
+    np.save("../../data/legendre/two_stream/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
-        # save results
-        np.save("../../data/legendre/two_stream/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
-                + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
+    # save results
+    np.save("../../data/legendre/two_stream/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
+            + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-        np.save("../../data/legendre/two_stream/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
-                + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+    np.save("../../data/legendre/two_stream/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+            + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
