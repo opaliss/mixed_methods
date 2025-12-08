@@ -61,88 +61,89 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod1(Nx=101,
-                                        Nv_e1=16,
-                                        Nv_e2=100,
-                                        epsilon=1e-4,
-                                        v_a=4,
-                                        v_b=15,
-                                        L=20 * np.pi,
-                                        dt=1e-2,
-                                        T0=0,
-                                        T=120,
-                                        nu_L=15,
-                                        nu_H=2,
-                                        n0_e1=0.99,
-                                        n0_e2=0.01,
-                                        u_e1=0,
-                                        u_e2=10,
-                                        alpha_e1=np.sqrt(2),
-                                        alpha_e2=np.sqrt(2),
-                                        gamma=0.5,
-                                        k0=0.1,
-                                        Nv_int=5000,
-                                        construct_integrals=True)
+    for Nv in 2**np.arange(7, 11):
+        setup = SimulationSetupMixedMethod1(Nx=101,
+                                            Nv_e1=int(16),
+                                            Nv_e2=int(Nv-16),
+                                            epsilon=1e-4,
+                                            v_a=4,
+                                            v_b=15,
+                                            L=20 * np.pi,
+                                            dt=1e-2,
+                                            T0=0,
+                                            T=120,
+                                            nu_L=10,
+                                            nu_H=10,
+                                            n0_e1=0.99,
+                                            n0_e2=0.01,
+                                            u_e1=0,
+                                            u_e2=10,
+                                            alpha_e1=np.sqrt(2),
+                                            alpha_e2=np.sqrt(2),
+                                            gamma=0.5,
+                                            k0=0.1,
+                                            Nv_int=5000,
+                                            construct_integrals=True)
 
-    # initial condition: read in result from previous simulation
-    y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
-    # grid
-    x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
-    # initial condition
-    y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
-    # beam electrons => legendre
-    x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
-    for nn in range(setup.Nv_e2):
-        xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1]**2)) / setup.alpha_e2[-1]
-        v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (nn + 1) * setup.Nx] = \
-            x_component * v_component
+        # initial condition: read in result from previous simulation
+        y0 = np.zeros((setup.Nv_e1 + setup.Nv_e2) * setup.Nx)
+        # grid
+        x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+        v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
+        # initial condition
+        y0[:setup.Nx] = setup.n0_e1 * (1 + setup.epsilon * np.cos(setup.k0 * x_)) / setup.alpha_e1[-1]
+        # beam electrons => legendre
+        x_component = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+        for nn in range(setup.Nv_e2):
+            xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
+            exp_ = setup.n0_e2 * np.exp(-((v_ - setup.u_e2[-1]) ** 2) / (setup.alpha_e2[-1]**2)) / setup.alpha_e2[-1]
+            v_component = scipy.integrate.trapezoid(xi * exp_, x=v_, dx=np.abs(v_[1] - v_[0]))
+            y0[setup.Nx * setup.Nv_e1 + nn * setup.Nx: setup.Nx * setup.Nv_e1 + (nn + 1) * setup.Nx] = \
+                x_component * v_component
 
-    # start timer
-    start_time_cpu = time.process_time()
-    start_time_wall = time.time()
+        # start timer
+        start_time_cpu = time.process_time()
+        start_time_wall = time.time()
 
-    # integrate (implicit midpoint)
-    sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_two_stream(y_0=y0,
-                                                                         right_hand_side=rhs,
-                                                                         a_tol=1e-10,
-                                                                         r_tol=1e-10,
-                                                                         max_iter=100,
-                                                                         param=setup,
-                                                                         bump_hermite_adapt=False,
-                                                                         bulk_hermite_adapt=False,
-                                                                         adaptive_u_and_alpha=False,
-                                                                         adaptive_between_hermite_and_legendre=False,
-                                                                         MM1=True)
+        # integrate (implicit midpoint)
+        sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_two_stream(y_0=y0,
+                                                                             right_hand_side=rhs,
+                                                                             a_tol=1e-10,
+                                                                             r_tol=1e-10,
+                                                                             max_iter=100,
+                                                                             param=setup,
+                                                                             bump_hermite_adapt=False,
+                                                                             bulk_hermite_adapt=False,
+                                                                             adaptive_u_and_alpha=False,
+                                                                             adaptive_between_hermite_and_legendre=False,
+                                                                             MM1=True)
 
-    end_time_cpu = time.process_time() - start_time_cpu
-    end_time_wall = time.time() - start_time_wall
+        end_time_cpu = time.process_time() - start_time_cpu
+        end_time_wall = time.time() - start_time_wall
 
-    print("runtime cpu = ", end_time_cpu)
-    print("runtime wall = ", end_time_wall)
+        print("runtime cpu = ", end_time_cpu)
+        print("runtime wall = ", end_time_wall)
 
-    # save the runtime
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+        # save the runtime
+        np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_runtime_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+                setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+                "_" + str(setup.T0) + "_" + str(setup.T),
+            np.array([end_time_cpu, end_time_wall]))
+
+        # save results
+        np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
             setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
-            "_" + str(setup.T0) + "_" + str(setup.T),
-        np.array([end_time_cpu, end_time_wall]))
+                "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    # save results
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_u_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
-            "_" + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
+        np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
+            setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+                "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
 
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/sol_t_NvH_" + str(setup.Nv_e1) + "_NvL_" + str(
-        setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
-            "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+        # save time varying alpha and u (for the bulk Hermite)
+        np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
+                + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_"
+                + str(setup.v_b) + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-    # save time varying alpha and u (for the bulk Hermite)
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_"
-            + str(setup.v_b) + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
-
-    np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
-            + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
-             "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
+        np.save("/Users/oissan/PycharmProjects/mixed_methods/data/mixed_method_1_aw_hermite_legendre/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
+                + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_v_a_" + str(setup.v_a) + "_v_b_" + str(setup.v_b) +
+                 "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)

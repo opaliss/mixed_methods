@@ -32,69 +32,70 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupLegendre(Nx=101,
-                                    Nv_e=4096,
-                                    epsilon=1e-4,
-                                    v_a=-5,
-                                    v_b=15,
-                                    alpha_e1=np.sqrt(2),
-                                    alpha_e2=np.sqrt(2),
-                                    u_e1=0,
-                                    u_e2=10,
-                                    n0_e1=0.99,
-                                    n0_e2=0.01,
-                                    k0=0.1,
-                                    L=20 * np.pi,
-                                    dt=1e-2,
-                                    Nv_int=5000,
-                                    T0=0,
-                                    T=120,
-                                    nu=1,
-                                    gamma=0.5)
+    for Nv in 2**np.array([9, 10]):
+        setup = SimulationSetupLegendre(Nx=101,
+                                        Nv_e=int(Nv),
+                                        epsilon=1e-4,
+                                        v_a=-5,
+                                        v_b=15,
+                                        alpha_e1=np.sqrt(2),
+                                        alpha_e2=np.sqrt(2),
+                                        u_e1=0,
+                                        u_e2=10,
+                                        n0_e1=0.99,
+                                        n0_e2=0.01,
+                                        k0=0.1,
+                                        L=20 * np.pi,
+                                        dt=1e-2,
+                                        Nv_int=5000,
+                                        T0=0,
+                                        T=120,
+                                        nu=10,
+                                        gamma=0.5)
 
-    # initial condition: read in result from previous simulation
-    y0 = np.zeros(setup.Nv_e * setup.Nx)
-    # first electron 1 species (perturbed)
-    x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
-    v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
-    x_component_bulk = (1 + setup.epsilon * np.cos(x_ * setup.k0)) / (
-                setup.v_b - setup.v_a) / np.sqrt(np.pi)
-    x_component_beam = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
-    for nn in range(setup.Nv_e):
-        xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
-        exp_bulk = setup.n0_e1 * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1 ** 2)) / setup.alpha_e1
-        exp_beam = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2 ** 2)) / setup.alpha_e2
-        v_component_bulk = scipy.integrate.trapezoid(xi * exp_bulk, x=v_, dx=np.abs(v_[1] - v_[0]))
-        v_component_beam = scipy.integrate.trapezoid(xi * exp_beam, x=v_, dx=np.abs(v_[1] - v_[0]))
-        y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component_bulk * v_component_bulk \
-                                                 + x_component_beam * v_component_beam
+        # initial condition: read in result from previous simulation
+        y0 = np.zeros(setup.Nv_e * setup.Nx)
+        # first electron 1 species (perturbed)
+        x_ = np.linspace(0, setup.L, setup.Nx, endpoint=False)
+        v_ = np.linspace(setup.v_a, setup.v_b, setup.Nv_int, endpoint=True)
+        x_component_bulk = (1 + setup.epsilon * np.cos(x_ * setup.k0)) / (
+                    setup.v_b - setup.v_a) / np.sqrt(np.pi)
+        x_component_beam = 1 / (setup.v_b - setup.v_a) / np.sqrt(np.pi)
+        for nn in range(setup.Nv_e):
+            xi = xi_legendre(n=nn, v=v_, v_a=setup.v_a, v_b=setup.v_b)
+            exp_bulk = setup.n0_e1 * np.exp(-((v_ - setup.u_e1) ** 2) / (setup.alpha_e1 ** 2)) / setup.alpha_e1
+            exp_beam = setup.n0_e2 * np.exp(-((v_ - setup.u_e2) ** 2) / (setup.alpha_e2 ** 2)) / setup.alpha_e2
+            v_component_bulk = scipy.integrate.trapezoid(xi * exp_bulk, x=v_, dx=np.abs(v_[1] - v_[0]))
+            v_component_beam = scipy.integrate.trapezoid(xi * exp_beam, x=v_, dx=np.abs(v_[1] - v_[0]))
+            y0[nn * setup.Nx: (nn + 1) * setup.Nx] = x_component_bulk * v_component_bulk \
+                                                     + x_component_beam * v_component_beam
 
-    # start timer
-    start_time_cpu = time.process_time()
-    start_time_wall = time.time()
+        # start timer
+        start_time_cpu = time.process_time()
+        start_time_wall = time.time()
 
-    # integrate (implicit midpoint)
-    sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_single_stream(y_0=y0,
-                                                                            right_hand_side=rhs,
-                                                                            a_tol=1e-10,
-                                                                            r_tol=1e-10,
-                                                                            max_iter=100,
-                                                                            param=setup,
-                                                                            adaptive=False)
+        # integrate (implicit midpoint)
+        sol_midpoint_u, setup = implicit_midpoint_solver_adaptive_single_stream(y_0=y0,
+                                                                                right_hand_side=rhs,
+                                                                                a_tol=1e-10,
+                                                                                r_tol=1e-10,
+                                                                                max_iter=100,
+                                                                                param=setup,
+                                                                                adaptive=False)
 
-    end_time_cpu = time.process_time() - start_time_cpu
-    end_time_wall = time.time() - start_time_wall
+        end_time_cpu = time.process_time() - start_time_cpu
+        end_time_wall = time.time() - start_time_wall
 
-    print("runtime cpu = ", end_time_cpu)
-    print("runtime wall = ", end_time_wall)
+        print("runtime cpu = ", end_time_cpu)
+        print("runtime wall = ", end_time_wall)
 
-    # save the runtime
-    np.save("../../data/legendre/bump_on_tail/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
+        # save the runtime
+        np.save("../../data/legendre/bump_on_tail/sol_runtime_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+                + "_" + str(setup.T0) + "_" + str(setup.T), np.array([end_time_cpu, end_time_wall]))
 
-    # save results
-    np.save("../../data/legendre/bump_on_tail/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
-            + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
+        # save results
+        np.save("../../data/legendre/bump_on_tail/sol_u_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx) + "_"
+                + str(setup.T0) + "_" + str(setup.T), sol_midpoint_u)
 
-    np.save("../../data/legendre/bump_on_tail/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
-            + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)
+        np.save("../../data/legendre/bump_on_tail/sol_t_Nv_" + str(setup.Nv_e) + "_Nx_" + str(setup.Nx)
+                + "_" + str(setup.T0) + "_" + str(setup.T), setup.t_vec)

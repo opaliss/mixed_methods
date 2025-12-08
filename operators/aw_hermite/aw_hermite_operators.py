@@ -144,7 +144,7 @@ def nonlinear_aw_hermite(E, psi, q, m, alpha, Nv, Nx):
     :return: N(E, psi)
     """
     res = np.zeros(len(psi))
-    for n in range(Nv):
+    for n in range(1, Nv):
         res[n * Nx: (n + 1) * Nx] = q / m / alpha * np.sqrt(2 * n) * E * psi[(n - 1) * Nx: n * Nx]
     return res
 

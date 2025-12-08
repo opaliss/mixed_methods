@@ -64,7 +64,7 @@ class SimulationSetupTwoStreamHermite:
         # order of finite difference operator
         self.FD_order = FD_order
         # initial perturbed wavenumber
-        self.k0 = 1
+        self.k0 = k0
 
         # matrices
         # Fourier derivative matrix

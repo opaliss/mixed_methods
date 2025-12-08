@@ -95,7 +95,7 @@ def implicit_midpoint_solver_adaptive_single_stream(y_0, right_hand_side, param,
                                                                                             dt=param.dt),
                                                     xin=y_sol[:, tt - 1],
                                                     maxiter=max_iter,
-                                                    method='gmres',
+                                                    method="gmres",
                                                     f_tol=a_tol,
                                                     f_rtol=r_tol,
                                                     verbose=True)
