@@ -61,7 +61,15 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in 2**np.arange(7, 11):
+    for Nv in 2**np.array([5, 6, 7, 8]):
+        if Nv == int(2**5):
+            nu = 1 # 0.25 # 0.5 was the best so far # 0 is too little
+        if Nv == int(2**6):
+            nu = 1 # 1 is good but a bit diffusive # 0 is too little
+        elif Nv == int(2**7):
+            nu = 1 #10
+        elif Nv == int(2**8):
+            nu = 1 #50
         setup = SimulationSetupMixedMethod1(Nx=101,
                                             Nv_e1=int(16),
                                             Nv_e2=int(Nv-16),
@@ -72,7 +80,7 @@ if __name__ == "__main__":
                                             dt=1e-2,
                                             T0=0,
                                             T=120,
-                                            nu_L=10,
+                                            nu_L=nu,
                                             nu_H=10,
                                             n0_e1=0.99,
                                             n0_e2=0.01,

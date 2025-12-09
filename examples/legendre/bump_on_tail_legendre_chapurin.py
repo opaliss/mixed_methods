@@ -32,7 +32,17 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in 2**np.array([9, 10]):
+    for Nv in 2**np.array([5]):
+        if Nv == int(2**5):
+            nu = 1 # 0.25 is good too
+        if Nv == int(2**6):
+            nu = 1
+        elif Nv == int(2**7):
+            nu = 1
+        elif Nv == int(2**8):
+            nu = 1
+        elif Nv == int(2**9):
+            nu = 10 #150
         setup = SimulationSetupLegendre(Nx=101,
                                         Nv_e=int(Nv),
                                         epsilon=1e-4,
@@ -50,7 +60,7 @@ if __name__ == "__main__":
                                         Nv_int=5000,
                                         T0=0,
                                         T=120,
-                                        nu=10,
+                                        nu=nu,
                                         gamma=0.5)
 
         # initial condition: read in result from previous simulation

@@ -50,7 +50,13 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in 2**np.arange(7, 11):
+    for Nv in 2**np.array([5, 6, 7, 8]):
+        if Nv == int(2 ** 5):
+            nu = 30
+        if Nv == int(2 ** 6):
+            nu = 30
+        elif Nv == int(2 ** 7):
+            nu = 30
         setup = SimulationSetupTwoStreamHermite(Nx=101,
                                                 Nv_e1=int(16),
                                                 Nv_e2=int(Nv - 16),
@@ -67,7 +73,7 @@ if __name__ == "__main__":
                                                 T=120,
                                                 k0=0.1,
                                                 nu_e1=10,
-                                                nu_e2=20,
+                                                nu_e2=nu,
                                                 n0_e1=0.99,
                                                 n0_e2=0.01,
                                                 alpha_tol=1e-1,
