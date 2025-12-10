@@ -1,7 +1,7 @@
-"""Module to run mixed method #1 bump on tail testcase
+"""Module to run mixed method #1 bump-on-tail instability
 
-Author: Opal Issan
-Date: Nov 25th, 2025
+Author: Opal Issan (oissan@ucsd.edu)
+Date: Dec 9th, 2025
 """
 import sys, os
 
@@ -9,7 +9,6 @@ sys.path.append(os.path.abspath(os.path.join('..')))
 
 from operators.mixed_method_1.mixed_method_1_operators import extra_term_1_legendre
 from operators.legendre.legendre_operators import nonlinear_legendre
-from operators.aw_hermite.aw_hermite_operators import nonlinear_aw_hermite
 from operators.mixed_method_1.setup_mixed_method_1_two_stream import SimulationSetupMixedMethod1
 from operators.implicit_midpoint_adaptive_single_stream import implicit_midpoint_solver_adaptive_single_stream
 import time
@@ -23,11 +22,23 @@ def rhs(y):
 
     dydt_ = np.zeros(len(y))
 
-    # evolving f0 hermite
-    A_e_H = setup.u_e1[-1] * setup.A_eH_diag + setup.alpha_e1[-1] * setup.A_eH_off + setup.nu_H * setup.A_eH_col
-    dydt_[:setup.Nv_e1 * setup.Nx] = A_e_H @ y[:setup.Nv_e1 * setup.Nx]
-    # evolving delta f legendre
+    # evolving bulk aw_hermite
+    A_eH = setup.u_e1[-1] * setup.A_e_H_diag + setup.alpha_e1[-1] * setup.A_e_H_off + setup.nu_H * setup.A_e_H_col
+    dydt_[:setup.Nv_e1 * setup.Nx] = A_eH @ y[:setup.Nv_e1 * setup.Nx] \
+                                    + scipy.sparse.kron(setup.B_e_H, scipy.sparse.diags(E, offsets=0)) @ y[:setup.Nv_e1 * setup.Nx] / setup.alpha_e1[-1]
+
     dydt_[setup.Nv_e1 * setup.Nx:] = setup.A_e_L @ y[setup.Nv_e1 * setup.Nx:] \
+                                     + nonlinear_legendre(E=E, psi=y[setup.Nv_e1 * setup.Nx:],
+                                                          Nv=setup.Nv_e2,
+                                                          Nx=setup.Nx,
+                                                          B_mat=setup.B_e_L,
+                                                          q=setup.q_e,
+                                                          m=setup.m_e,
+                                                          gamma=setup.gamma,
+                                                          v_a=setup.v_a,
+                                                          v_b=setup.v_b,
+                                                          xi_v_a=setup.xi_v_a,
+                                                          xi_v_b=setup.xi_v_b) \
                                      + extra_term_1_legendre(J_int=setup.J_int[-1, :],
                                                              v_b=setup.v_b,
                                                              v_a=setup.v_a,
@@ -35,17 +46,14 @@ def rhs(y):
                                                              alpha=setup.alpha_e1[-1],
                                                              Nv_H=setup.Nv_e1,
                                                              D=setup.D,
-                                                             E=E,
-                                                             Nv_L=setup.Nv_e2,
-                                                             Nx=setup.Nx)
+                                                             E=E)
     return dydt_
 
 
 if __name__ == "__main__":
-    setup = SimulationSetupMixedMethod1(Nx=51,
-                                        Nv_e1=80,
-                                        Nv_e2=80,
-                                        Nv_start=0,
+    setup = SimulationSetupMixedMethod1(Nx=101,
+                                        Nv_e1=100,
+                                        Nv_e2=100,
                                         epsilon=1,
                                         v_a=-5,
                                         v_b=5,
