@@ -20,5 +20,9 @@ def extra_term_1_legendre(J_int, v_b, v_a, C_hermite_last, alpha, Nv_H, D, E):
     :return:
     """
     A = -alpha / (v_b - v_a) * np.sqrt(Nv_H / 2) * (D @ C_hermite_last + 2 / (alpha ** 2) * E * C_hermite_last)
+    # todo: enforce conservation laws explicitly
+    J_int[0] = 0
+    J_int[1] = 0
+    J_int[2] = 0
     return np.kron(J_int, A)
 

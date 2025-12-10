@@ -48,39 +48,32 @@ def rhs(y):
                                                           v_a=setup.v_a,
                                                           v_b=setup.v_b,
                                                           xi_v_a=setup.xi_v_a,
-                                                          xi_v_b=setup.xi_v_b) \
-                                     + extra_term_1_legendre(J_int=setup.J_int[-1, :],
-                                                             v_b=setup.v_b,
-                                                             v_a=setup.v_a,
-                                                             C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
-                                                             alpha=setup.alpha_e1[-1],
-                                                             Nv_H=setup.Nv_e1,
-                                                             D=setup.D,
-                                                             E=E)
+                                                          xi_v_b=setup.xi_v_b)
+                                    # todo: turn off the mixing term
+                                     # + extra_term_1_legendre(J_int=setup.J_int[-1, :],
+                                     #                         v_b=setup.v_b,
+                                     #                         v_a=setup.v_a,
+                                     #                         C_hermite_last=y[(setup.Nv_e1 - 1) * setup.Nx: setup.Nv_e1 * setup.Nx],
+                                     #                         alpha=setup.alpha_e1[-1],
+                                     #                         Nv_H=setup.Nv_e1,
+                                     #                         D=setup.D,
+                                     #                         E=E)
     return dydt_
 
 
 if __name__ == "__main__":
-    for Nv in 2**np.array([5, 6, 7, 8]):
-        if Nv == int(2**5):
-            nu = 1 # 0.25 # 0.5 was the best so far # 0 is too little
-        if Nv == int(2**6):
-            nu = 1 # 1 is good but a bit diffusive # 0 is too little
-        elif Nv == int(2**7):
-            nu = 1 #10
-        elif Nv == int(2**8):
-            nu = 1 #50
+    for Nv in 2**np.array([6, 7, 8]):
         setup = SimulationSetupMixedMethod1(Nx=101,
                                             Nv_e1=int(16),
                                             Nv_e2=int(Nv-16),
                                             epsilon=1e-4,
-                                            v_a=4,
+                                            v_a=5,
                                             v_b=15,
                                             L=20 * np.pi,
                                             dt=1e-2,
                                             T0=0,
                                             T=120,
-                                            nu_L=nu,
+                                            nu_L=1,
                                             nu_H=10,
                                             n0_e1=0.99,
                                             n0_e2=0.01,

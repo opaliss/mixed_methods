@@ -50,15 +50,15 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in 2**np.array([5, 6, 7, 8]):
+    for Nv in 2**np.array([6]):
         if Nv == int(2 ** 5):
-            nu = 30
+            nu = 10
         if Nv == int(2 ** 6):
-            nu = 30
+            nu = 10
         elif Nv == int(2 ** 7):
-            nu = 30
+            nu = 20
         elif Nv == int(2 ** 8):
-            nu = 30
+            nu = 20
         setup = SimulationSetupTwoStreamHermite(Nx=101,
                                                 Nv_e1=int(16),
                                                 Nv_e2=int(Nv - 16),
@@ -74,7 +74,7 @@ if __name__ == "__main__":
                                                 T0=0,
                                                 T=120,
                                                 k0=0.1,
-                                                nu_e1=10,
+                                                nu_e1=1,
                                                 nu_e2=nu,
                                                 n0_e1=0.99,
                                                 n0_e2=0.01,
@@ -114,16 +114,16 @@ if __name__ == "__main__":
         print("runtime wall = ", end_time_wall)
 
         # save runtime
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/sol_runtime_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/sol_runtime_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx) + "_" + str(setup.T0)
                 + "_" + str(setup.T) + ".npy", np.array([end_time_cpu, end_time_wall]))
 
         # save results
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/sol_u_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/sol_u_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", sol_midpoint_u)
 
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/sol_t_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/sol_t_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
 
