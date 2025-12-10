@@ -1,7 +1,7 @@
 """Module to run Legendre bump on tail testcase
 
 Author: Opal Issan
-Date: June 9th, 2025
+Date: Dec 9th, 2025
 """
 import sys, os
 
@@ -32,7 +32,7 @@ def rhs(y):
 
 
 if __name__ == "__main__":
-    for Nv in 2**np.array([5]):
+    for Nv in 2**np.array([5, 6, 7, 8]):
         if Nv == int(2**5):
             nu = 1 # 0.25 is good too
         if Nv == int(2**6):
@@ -41,8 +41,6 @@ if __name__ == "__main__":
             nu = 1
         elif Nv == int(2**8):
             nu = 1
-        elif Nv == int(2**9):
-            nu = 10 #150
         setup = SimulationSetupLegendre(Nx=101,
                                         Nv_e=int(Nv),
                                         epsilon=1e-4,

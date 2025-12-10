@@ -57,6 +57,8 @@ if __name__ == "__main__":
             nu = 30
         elif Nv == int(2 ** 7):
             nu = 30
+        elif Nv == int(2 ** 8):
+            nu = 30
         setup = SimulationSetupTwoStreamHermite(Nx=101,
                                                 Nv_e1=int(16),
                                                 Nv_e2=int(Nv - 16),
@@ -126,18 +128,18 @@ if __name__ == "__main__":
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.t_vec)
 
         # save time varying alpha and u
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/alpha_e1_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/alpha_e1_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e1)
 
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/alpha_e2_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/alpha_e2_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.alpha_e2)
 
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/u_e1_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/u_e1_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e1)
 
-        np.save("../../data/aw_hermite/bump_on_tail_adaptive/u_e2_Nve1_" + str(setup.Nv_e1)
+        np.save("../../data/aw_hermite/bump_on_tail/u_e2_Nve1_" + str(setup.Nv_e1)
                 + "_Nve2_" + str(setup.Nv_e2) + "_Nx_" + str(setup.Nx)
                 + "_" + str(setup.T0) + "_" + str(setup.T) + ".npy", setup.u_e2)
